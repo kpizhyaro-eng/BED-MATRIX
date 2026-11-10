@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BedMatrix - Login</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.default.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100%;
+            
+            /* Animated Gradient Background */
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #1e1b4b);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+
+            /* Flexbox for centering login card */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Blur Overlay */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            z-index: 0;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card {
+            background-color: rgba(15, 23, 42, 0.6);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: max-width 0.4s ease; /* Smooth transition for resizing */
+            animation: slideInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            position: relative;
+            z-index: 10;
+        }
+
+        .login-card.register-mode {
+            max-width: 600px; /* Wider card for horizontal form */
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .brand-logo {
+
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #38bdf8, #818cf8, #c084fc);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: logoShimmer 3s ease infinite;
+        }
+
+        @keyframes logoShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .login-header p {
+            margin: 10px 0 0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Floating Labels */
+        .floating-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 12px 8px 12px; /* More top padding for label space */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: white;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .floating-label {
+            position: absolute;
+            top: 14px;
+            left: 12px;
+            color: #cbd5e1;
+            font-size: 15px;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background-color: transparent;
+        }
+
+        /* Move label up when focused or has content (using placeholder-shown trick) */
+        .form-control:focus ~ .floating-label,
+        .form-control:not(:placeholder-shown) ~ .floating-label {
+            top: 2px;
+            font-size: 11px;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background-color: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .form-control {
+            padding-right: 40px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            user-select: none;
+            transition: color 0.2s, transform 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: #38bdf8;
+        }
+
+        /* Tooltip Styles */
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-wrapper .form-control {
+            padding-right: 40px;
+        }
+
+        .info-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: help;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .info-icon:hover {
+            color: #38bdf8;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 10;
+            bottom: 140%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+
+        .info-icon:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .remember-me {
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: #38bdf8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .forgot-password:hover {
+            color: #7dd3fc;
+            text-decoration: underline;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, #2563eb, #0ea5e9);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer-text {
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        /* Custom Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3b82f6; /* Default blue */
+            transform: translateX(120%); /* Start off-screen */
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 300px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: #ef4444; /* Red */
+        }
+
+        .notification.success {
+            border-left-color: #22c55e; /* Green */
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .toggle-text a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toggle-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Horizontal Register Form Styles */
+        #registerForm {
+            /* Grid layout applied via JS when visible */
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        #registerForm .btn-login {
+            grid-column: span 2; /* Button spans full width */
+        }
+
+        #registerForm .form-group {
+            margin-bottom: 0; /* Let grid gap handle spacing */
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* Error Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+            border-color: #ef4444 !important;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-loading .spinner {
+            display: block;
+        }
+
+        /* Success Fade Out */
+        .fade-out-up {
+            animation: fadeOutUp 0.5s forwards;
+        }
+
+        @keyframes fadeOutUp {
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Global Polish */
+        ::selection { background: #38bdf8; color: white; }
+
+        /* Tom Select Customization */
+        .ts-wrapper.country-select { width: 110px; flex-shrink: 0; }
+        .ts-wrapper.nationality-select { width: 100%; margin-bottom: 20px; }
+        .ts-control {
+            padding: 12px 8px !important;
+            min-height: unset !important;
+            height: 48px; /* Match form-control height on login page */
+            border-radius: 6px !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            background-color: rgba(0, 0, 0, 0.2) !important;
+            color: white !important;
+        }
+        .ts-control input { color: white !important; }
+        .ts-dropdown { background-color: #1e293b; border-color: rgba(255,255,255,0.1); color: white; }
+        .ts-dropdown .option:hover, .ts-dropdown .active { background-color: #334155; color: white; }
+    </style>
+</head>
+<body>
+    <div id="notification-container" class="notification-container"></div>
+
+    <div class="login-card">
+        <div class="login-header">
+            <h2 class="brand-logo">BedMatrix</h2>
+            <p>Advanced Bed Management System</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group floating-group">
+                <div class="input-wrapper">
+                    <input type="text" id="staffId" class="form-control" placeholder=" " required>
+                    <label for="staffId" class="floating-label">Staff ID</label>
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span class="tooltip-text">Format: HOSP/ROLE/YYYY/NNNN<br>e.g. HOSP/DOC/2024/0042</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group floating-group">
+                <div class="password-wrapper">
+                    <input type="password" id="password" class="form-control" placeholder=" " required>
+                    <label for="password" class="floating-label">Password</label>
+                    <span class="password-toggle" onclick="togglePassword('password', this)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <label class="remember-me">
+                    <input type="checkbox"> Remember me
+                </label>
+                <a href="#" class="forgot-password">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn-login" id="btnLogin">
+                <span class="spinner"></span>
+                <span class="btn-text">Login</span>
+            </button>
+        </form>
+
+        <form id="registerForm" style="display: none;">
+            <div class="form-group floating-group">
+                <input type="text" id="regFullName" class="form-control" placeholder=" " required>
+                <label for="regFullName" class="floating-label">Full Name</label>
+            </div>
+
+            <div class="form-group floating-group">
+                <div class="input-wrapper">
+                    <input type="text" id="regStaffId" class="form-control" placeholder=" " required>
+                    <label for="regStaffId" class="floating-label">Staff ID</label>
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span class="tooltip-text">Format: HOSP/ROLE/YYYY/NNNN<br>Roles: DOC, ADM, NUR, WMG, REC</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group floating-group">
+                <input type="email" id="regEmail" class="form-control" placeholder=" " required>
+                <label for="regEmail" class="floating-label">Email Address</label>
+            </div>
+
+            <!-- Nationality Select -->
+            <select id="regNationality" class="nationality-select" placeholder="Select Nationality..." required></select>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <select id="regCountryCode" class="country-select"></select>
+                <div class="floating-group" style="flex-grow: 1; margin-bottom: 0;">
+                    <input type="tel" id="regContact" class="form-control" placeholder=" " required>
+                    <label for="regContact" class="floating-label">Contact (9 digits)</label>
+                </div>
+            </div>
+
+            <div class="form-group floating-group">
+                <div class="password-wrapper">
+                    <input type="password" id="regPassword" class="form-control" placeholder=" " required>
+                    <label for="regPassword" class="floating-label">Password</label>
+                    <span class="password-toggle" onclick="togglePassword('regPassword', this)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+                </div>
+            </div>
+
+            <div class="form-group floating-group">
+                <div class="password-wrapper">
+                    <input type="password" id="regConfirmPassword" class="form-control" placeholder=" " required>
+                    <label for="regConfirmPassword" class="floating-label">Confirm Password</label>
+                    <span class="password-toggle" onclick="togglePassword('regConfirmPassword', this)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login" id="btnRegister">
+                <span class="spinner"></span>
+                <span class="btn-text">Register</span>
+            </button>
+        </form>
+
+        <div id="toggleTextLogin" class="toggle-text">
+            Don't have an account? <a href="#" id="showRegister">Register</a>
+        </div>
+        <div id="toggleTextRegister" class="toggle-text" style="display: none;">
+            Already have an account? <a href="#" id="showLogin">Login</a>
+        </div>
+    </div>
+    <div class="footer-text">© 2024 BedMatrix System</div>
+
+    <script>
+        function showNotification(message, type) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+
+            // Save to LocalStorage for Notifications Tab
+            const notifData = {
+                message: message,
+                type: type,
+                timestamp: new Date().toLocaleString()
+            };
+            const storedNotifs = JSON.parse(localStorage.getItem('nbs_notifications') || '[]');
+            storedNotifs.unshift(notifData); // Add to top
+            localStorage.setItem('nbs_notifications', JSON.stringify(storedNotifs));
+
+            // Small delay to allow DOM render before adding class for transition
+            setTimeout(() => notification.classList.add('show'), 10);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300); // Wait for transition
+            }, 3000);
+        }
+
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            } else {
+                input.type = "password";
+                icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+        }
+
+        // Database Simulation (localStorage)
+        const DB_KEY = 'nbs_system_users';
+
+        function getUsers() {
+            const users = localStorage.getItem(DB_KEY);
+            return users ? JSON.parse(users) : [];
+        }
+
+        function saveUser(user) {
+            const users = getUsers();
+            users.push(user);
+            localStorage.setItem(DB_KEY, JSON.stringify(users));
+        }
+
+        function shakeInputs(formId) {
+            const inputs = document.querySelectorAll(`#${formId} .form-control`);
+            inputs.forEach(input => {
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 400);
+            });
+        }
+
+        // Toggle Forms Logic
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const headerTitle = document.querySelector('.login-header h2');
+        const headerDesc = document.querySelector('.login-header p');
+        const toggleLogin = document.getElementById('toggleTextLogin');
+        const toggleRegister = document.getElementById('toggleTextRegister');
+        const loginCard = document.querySelector('.login-card');
+
+        document.getElementById('showRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginCard.classList.add('register-mode'); // Make card wider
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'grid'; // Use grid for horizontal layout
+            toggleLogin.style.display = 'none';
+            toggleRegister.style.display = 'block';
+            headerTitle.textContent = 'Register';
+            headerDesc.textContent = 'Create your BedMatrix account';
+        });
+
+        document.getElementById('showLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginCard.classList.remove('register-mode'); // Revert width
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            toggleLogin.style.display = 'block';
+            toggleRegister.style.display = 'none';
+            headerTitle.textContent = 'BedMatrix';
+            headerDesc.textContent = 'Advanced Bed Management System';
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const staffId = document.getElementById('staffId').value;
+            const password = document.getElementById('password').value;
+
+            const btn = document.getElementById('btnLogin');
+            const btnText = btn.querySelector('.btn-text');
+
+            // Loading State
+            btn.classList.add('btn-loading');
+            btn.disabled = true;
+            btnText.textContent = 'Authenticating...';
+
+            // Simulate network delay
+            setTimeout(() => {
+                const users = getUsers();
+                const user = users.find(u => u.staffId === staffId && u.password === password);
+
+                if (user) {
+                    localStorage.setItem('nbs_current_user', JSON.stringify(user)); // Save session
+                    showNotification(`Welcome back, ${user.fullName}!`, 'success');
+                    loginCard.classList.add('fade-out-up');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 600);
+                } else {
+                    showNotification('Invalid Staff ID or Password.', 'error');
+                    shakeInputs('loginForm');
+                    // Reset button
+                    btn.classList.remove('btn-loading');
+                    btn.disabled = false;
+                    btnText.textContent = 'Login';
+                }
+            }, 1500);
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const pass = document.getElementById('regPassword').value;
+            const confirmPass = document.getElementById('regConfirmPassword').value;
+            const staffId = document.getElementById('regStaffId').value;
+            const fullName = document.getElementById('regFullName').value;
+            const email = document.getElementById('regEmail').value;
+            const nationality = document.getElementById('regNationality').value;
+            const countryCode = document.getElementById('regCountryCode').value;
+            const contactNum = document.getElementById('regContact').value;
+
+            // Validate Staff ID Format: HOSP/ROLE/YYYY/NNNN
+            const staffIdPattern = /^[A-Z0-9]+\/(DOC|ADM|NUR|WMG|REC)\/\d{4}\/\d{4}$/;
+            if (!staffIdPattern.test(staffId)) {
+                showNotification('Invalid Staff ID. Format: HOSP/ROLE/YYYY/NNNN', 'error');
+                shakeInputs('registerForm');
+                return;
+            }
+
+            if (pass !== confirmPass) {
+                showNotification('Passwords do not match.', 'error');
+                shakeInputs('registerForm');
+                return;
+            }
+
+            // Check if user already exists
+            const users = getUsers();
+            if (users.some(u => u.staffId === staffId)) {
+                showNotification('User with this Staff ID already exists.', 'error');
+                shakeInputs('registerForm');
+                return;
+            }
+
+            const reqLen = getRequiredLength(countryCode);
+            if ((reqLen > 0 && contactNum.length !== reqLen) || (reqLen === 0 && (contactNum.length < 7 || contactNum.length > 15))) {
+                showNotification(`Contact number must be ${reqLen || '7-15'} digits for ${countryCode}.`, 'error');
+                shakeInputs('registerForm');
+                return;
+            }
+
+            // Extract Role from Staff ID (e.g. PS/ADMIN/23/0118 -> ADMIN)
+            const extractedRole = staffId.split('/')[1] || 'STAFF';
+
+            // Save to "Database"
+            const newUser = {
+                fullName: fullName,
+                staffId: staffId,
+                email: email,
+                nationality: nationality,
+                contact: `${countryCode} ${contactNum}`,
+                password: pass,
+                role: extractedRole
+            };
+
+            const btn = document.getElementById('btnRegister');
+            const btnText = btn.querySelector('.btn-text');
+            btn.classList.add('btn-loading');
+            btnText.textContent = 'Creating Account...';
+
+            setTimeout(() => {
+                saveUser(newUser);
+                showNotification('Registration successful! Please login.', 'success');
+                
+                btn.classList.remove('btn-loading');
+                btnText.textContent = 'Register';
+                
+                // Automatically switch back to login after a short delay
+                setTimeout(() => document.getElementById('showLogin').click(), 1000);
+            }, 1500);
+        });
+
+        // Auto-capitalize Staff ID inputs
+        ['staffId', 'regStaffId'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function(e) {
+                let val = this.value.toUpperCase();
+                // Auto-replace hyphens or spaces with slashes to match format
+                this.value = val.replace(/[- ]/g, '/');
+            });
+        });
+
+        function getRequiredLength(code) {
+            const lengths = { "+1": 10, "+7": 10, "+20": 10, "+27": 9, "+30": 10, "+31": 9, "+32": 9, "+33": 9, "+34": 9, "+39": 10, "+44": 10, "+49": 10, "+55": 11, "+61": 9, "+81": 10, "+86": 11, "+91": 10, "+233": 9, "+234": 10 };
+            return lengths[code] || 0;
+        }
+
+        // Contact Number Validation (9 digits, ignore leading 0)
+        document.getElementById('regContact').addEventListener('input', function(e) {
+            let val = this.value.replace(/\D/g, '');
+            if (val.startsWith('0')) val = val.substring(1);
+            const reqLen = getRequiredLength(document.getElementById('regCountryCode').value);
+            const maxLen = reqLen || 15;
+            if (val.length > maxLen) val = val.substring(0, maxLen);
+            this.value = val;
+        });
+
+        // --- Tom Select Initialization for Country Codes ---
+        const countryData = [
+            {val: "+1", label: "United States, Canada (+1)", flag: "🇺🇸"},
+            {val: "+7", label: "Russia, Kazakhstan (+7)", flag: "🇷🇺"},
+            {val: "+20", label: "Egypt (+20)", flag: "🇪🇬"},
+            {val: "+27", label: "South Africa (+27)", flag: "🇿🇦"},
+            {val: "+30", label: "Greece (+30)", flag: "🇬🇷"},
+            {val: "+31", label: "Netherlands (+31)", flag: "🇳🇱"},
+            {val: "+32", label: "Belgium (+32)", flag: "🇧🇪"},
+            {val: "+33", label: "France (+33)", flag: "🇫🇷"},
+            {val: "+34", label: "Spain (+34)", flag: "🇪🇸"},
+            {val: "+36", label: "Hungary (+36)", flag: "🇭🇺"},
+            {val: "+39", label: "Italy (+39)", flag: "🇮🇹"},
+            {val: "+40", label: "Romania (+40)", flag: "🇷🇴"},
+            {val: "+41", label: "Switzerland (+41)", flag: "🇨🇭"},
+            {val: "+43", label: "Austria (+43)", flag: "🇦🇹"},
+            {val: "+44", label: "United Kingdom (+44)", flag: "🇬🇧"},
+            {val: "+45", label: "Denmark (+45)", flag: "🇩🇰"},
+            {val: "+46", label: "Sweden (+46)", flag: "🇸🇪"},
+            {val: "+47", label: "Norway (+47)", flag: "🇳🇴"},
+            {val: "+48", label: "Poland (+48)", flag: "🇵🇱"},
+            {val: "+49", label: "Germany (+49)", flag: "🇩🇪"},
+            {val: "+51", label: "Peru (+51)", flag: "🇵🇪"},
+            {val: "+52", label: "Mexico (+52)", flag: "🇲🇽"},
+            {val: "+53", label: "Cuba (+53)", flag: "🇨🇺"},
+            {val: "+54", label: "Argentina (+54)", flag: "🇦🇷"},
+            {val: "+55", label: "Brazil (+55)", flag: "🇧🇷"},
+            {val: "+56", label: "Chile (+56)", flag: "🇨🇱"},
+            {val: "+57", label: "Colombia (+57)", flag: "🇨🇴"},
+            {val: "+58", label: "Venezuela (+58)", flag: "🇻🇪"},
+            {val: "+60", label: "Malaysia (+60)", flag: "🇲🇾"},
+            {val: "+61", label: "Australia (+61)", flag: "🇦🇺"},
+            {val: "+62", label: "Indonesia (+62)", flag: "🇮🇩"},
+            {val: "+63", label: "Philippines (+63)", flag: "🇵🇭"},
+            {val: "+64", label: "New Zealand (+64)", flag: "🇳🇿"},
+            {val: "+65", label: "Singapore (+65)", flag: "🇸🇬"},
+            {val: "+66", label: "Thailand (+66)", flag: "🇹🇭"},
+            {val: "+81", label: "Japan (+81)", flag: "🇯🇵"},
+            {val: "+82", label: "South Korea (+82)", flag: "🇰🇷"},
+            {val: "+84", label: "Vietnam (+84)", flag: "🇻🇳"},
+            {val: "+86", label: "China (+86)", flag: "🇨🇳"},
+            {val: "+90", label: "Turkey (+90)", flag: "🇹🇷"},
+            {val: "+91", label: "India (+91)", flag: "🇮🇳"},
+            {val: "+92", label: "Pakistan (+92)", flag: "🇵🇰"},
+            {val: "+93", label: "Afghanistan (+93)", flag: "🇦🇫"},
+            {val: "+94", label: "Sri Lanka (+94)", flag: "🇱🇰"},
+            {val: "+95", label: "Myanmar (+95)", flag: "🇲🇲"},
+            {val: "+98", label: "Iran (+98)", flag: "🇮🇷"},
+            {val: "+211", label: "South Sudan (+211)", flag: "🇸🇸"},
+            {val: "+212", label: "Morocco (+212)", flag: "🇲🇦"},
+            {val: "+213", label: "Algeria (+213)", flag: "🇩🇿"},
+            {val: "+216", label: "Tunisia (+216)", flag: "🇹🇳"},
+            {val: "+218", label: "Libya (+218)", flag: "🇱🇾"},
+            {val: "+220", label: "Gambia (+220)", flag: "🇬🇲"},
+            {val: "+221", label: "Senegal (+221)", flag: "🇸🇳"},
+            {val: "+222", label: "Mauritania (+222)", flag: "🇲🇷"},
+            {val: "+223", label: "Mali (+223)", flag: "🇲🇱"},
+            {val: "+224", label: "Guinea (+224)", flag: "🇬🇳"},
+            {val: "+225", label: "Côte d’Ivoire (+225)", flag: "🇨🇮"},
+            {val: "+226", label: "Burkina Faso (+226)", flag: "🇧🇫"},
+            {val: "+227", label: "Niger (+227)", flag: "🇳🇪"},
+            {val: "+228", label: "Togo (+228)", flag: "🇹🇬"},
+            {val: "+229", label: "Benin (+229)", flag: "🇧🇯"},
+            {val: "+230", label: "Mauritius (+230)", flag: "🇲🇺"},
+            {val: "+231", label: "Liberia (+231)", flag: "🇱🇷"},
+            {val: "+232", label: "Sierra Leone (+232)", flag: "🇸🇱"},
+            {val: "+233", label: "Ghana (+233)", flag: "🇬🇭"},
+            {val: "+234", label: "Nigeria (+234)", flag: "🇳🇬"},
+            {val: "+235", label: "Chad (+235)", flag: "🇹🇩"},
+            {val: "+236", label: "Central African Republic (+236)", flag: "🇨🇫"},
+            {val: "+237", label: "Cameroon (+237)", flag: "🇨🇲"},
+            {val: "+238", label: "Cape Verde (+238)", flag: "🇨🇻"},
+            {val: "+239", label: "São Tomé and Príncipe (+239)", flag: "🇸🇹"},
+            {val: "+240", label: "Equatorial Guinea (+240)", flag: "🇬🇶"},
+            {val: "+241", label: "Gabon (+241)", flag: "🇬🇦"},
+            {val: "+242", label: "Republic of Congo (+242)", flag: "🇨🇬"},
+            {val: "+243", label: "Democratic Republic of Congo (+243)", flag: "🇨🇩"},
+            {val: "+244", label: "Angola (+244)", flag: "🇦🇴"},
+            {val: "+245", label: "Guinea-Bissau (+245)", flag: "🇬🇼"},
+            {val: "+246", label: "British Indian Ocean Territory (+246)", flag: "🇮🇴"},
+            {val: "+248", label: "Seychelles (+248)", flag: "🇸🇨"},
+            {val: "+249", label: "Sudan (+249)", flag: "🇸🇩"},
+            {val: "+250", label: "Rwanda (+250)", flag: "🇷🇼"},
+            {val: "+251", label: "Ethiopia (+251)", flag: "🇪🇹"},
+            {val: "+252", label: "Somalia (+252)", flag: "🇸🇴"},
+            {val: "+253", label: "Djibouti (+253)", flag: "🇩🇯"},
+            {val: "+254", label: "Kenya (+254)", flag: "🇰🇪"},
+            {val: "+255", label: "Tanzania (+255)", flag: "🇹🇿"},
+            {val: "+256", label: "Uganda (+256)", flag: "🇺🇬"},
+            {val: "+257", label: "Burundi (+257)", flag: "🇧🇮"},
+            {val: "+258", label: "Mozambique (+258)", flag: "🇲🇿"},
+            {val: "+260", label: "Zambia (+260)", flag: "🇿🇲"},
+            {val: "+261", label: "Madagascar (+261)", flag: "🇲🇬"},
+            {val: "+262", label: "Réunion, Mayotte (+262)", flag: "🇷🇪"},
+            {val: "+263", label: "Zimbabwe (+263)", flag: "🇿🇼"},
+            {val: "+264", label: "Namibia (+264)", flag: "🇳🇦"},
+            {val: "+265", label: "Malawi (+265)", flag: "🇲🇼"},
+            {val: "+266", label: "Lesotho (+266)", flag: "🇱🇸"},
+            {val: "+267", label: "Botswana (+267)", flag: "🇧🇼"},
+            {val: "+268", label: "Eswatini (Swaziland) (+268)", flag: "🇸🇿"},
+            {val: "+269", label: "Comoros (+269)", flag: "🇰🇲"},
+            {val: "+290", label: "Saint Helena (+290)", flag: "🇸🇭"},
+            {val: "+291", label: "Eritrea (+291)", flag: "🇪🇷"},
+            {val: "+297", label: "Aruba (+297)", flag: "🇦🇼"},
+            {val: "+298", label: "Faroe Islands (+298)", flag: "🇫🇴"},
+            {val: "+299", label: "Greenland (+299)", flag: "🇬🇱"},
+            {val: "+350", label: "Gibraltar (+350)", flag: "🇬🇮"},
+            {val: "+351", label: "Portugal (+351)", flag: "🇵🇹"},
+            {val: "+352", label: "Luxembourg (+352)", flag: "🇱🇺"},
+            {val: "+353", label: "Ireland (+353)", flag: "🇮🇪"},
+            {val: "+354", label: "Iceland (+354)", flag: "🇮🇸"},
+            {val: "+355", label: "Albania (+355)", flag: "🇦🇱"},
+            {val: "+356", label: "Malta (+356)", flag: "🇲🇹"},
+            {val: "+357", label: "Cyprus (+357)", flag: "🇨🇾"},
+            {val: "+358", label: "Finland (+358)", flag: "🇫🇮"},
+            {val: "+359", label: "Bulgaria (+359)", flag: "🇧🇬"},
+            {val: "+370", label: "Lithuania (+370)", flag: "🇱🇹"},
+            {val: "+371", label: "Latvia (+371)", flag: "🇱🇻"},
+            {val: "+372", label: "Estonia (+372)", flag: "🇪🇪"},
+            {val: "+373", label: "Moldova (+373)", flag: "🇲🇩"},
+            {val: "+374", label: "Armenia (+374)", flag: "🇦🇲"},
+            {val: "+375", label: "Belarus (+375)", flag: "🇧🇾"},
+            {val: "+376", label: "Andorra (+376)", flag: "🇦🇩"},
+            {val: "+377", label: "Monaco (+377)", flag: "🇲🇨"},
+            {val: "+378", label: "San Marino (+378)", flag: "🇸🇲"},
+            {val: "+379", label: "Vatican City (+379)", flag: "🇻🇦"},
+            {val: "+380", label: "Ukraine (+380)", flag: "🇺🇦"},
+            {val: "+381", label: "Serbia (+381)", flag: "🇷🇸"},
+            {val: "+382", label: "Montenegro (+382)", flag: "🇲🇪"},
+            {val: "+383", label: "Kosovo (+383)", flag: "🇽🇰"},
+            {val: "+385", label: "Croatia (+385)", flag: "🇭🇷"},
+            {val: "+386", label: "Slovenia (+386)", flag: "🇸🇮"},
+            {val: "+387", label: "Bosnia and Herzegovina (+387)", flag: "🇧🇦"},
+            {val: "+389", label: "North Macedonia (+389)", flag: "🇲🇰"},
+            {val: "+420", label: "Czech Republic (+420)", flag: "🇨🇿"},
+            {val: "+421", label: "Slovakia (+421)", flag: "🇸🇰"},
+            {val: "+423", label: "Liechtenstein (+423)", flag: "🇱🇮"},
+            {val: "+500", label: "Falkland Islands (+500)", flag: "🇫🇰"},
+            {val: "+501", label: "Belize (+501)", flag: "🇧🇿"},
+            {val: "+502", label: "Guatemala (+502)", flag: "🇬🇹"},
+            {val: "+503", label: "El Salvador (+503)", flag: "🇸🇻"},
+            {val: "+504", label: "Honduras (+504)", flag: "🇭🇳"},
+            {val: "+505", label: "Nicaragua (+505)", flag: "🇳🇮"},
+            {val: "+506", label: "Costa Rica (+506)", flag: "🇨🇷"},
+            {val: "+507", label: "Panama (+507)", flag: "🇵🇦"},
+            {val: "+508", label: "Saint Pierre and Miquelon (+508)", flag: "🇵🇲"},
+            {val: "+509", label: "Haiti (+509)", flag: "🇭🇹"},
+            {val: "+590", label: "Guadeloupe, Saint Martin (+590)", flag: "🇬🇵"},
+            {val: "+591", label: "Bolivia (+591)", flag: "🇧🇴"},
+            {val: "+592", label: "Guyana (+592)", flag: "🇬🇾"},
+            {val: "+593", label: "Ecuador (+593)", flag: "🇪🇨"},
+            {val: "+594", label: "French Guiana (+594)", flag: "🇬🇫"},
+            {val: "+595", label: "Paraguay (+595)", flag: "🇵🇾"},
+            {val: "+596", label: "Martinique (+596)", flag: "🇲🇶"},
+            {val: "+597", label: "Suriname (+597)", flag: "🇸🇷"},
+            {val: "+598", label: "Uruguay (+598)", flag: "🇺🇾"},
+            {val: "+599", label: "Curaçao, Sint Maarten (+599)", flag: "🇨🇼"},
+            {val: "+670", label: "Timor-Leste (+670)", flag: "🇹🇱"},
+            {val: "+672", label: "Australian External Territories (+672)", flag: "🇦🇶"},
+            {val: "+673", label: "Brunei (+673)", flag: "🇧🇳"},
+            {val: "+674", label: "Nauru (+674)", flag: "🇳🇷"},
+            {val: "+675", label: "Papua New Guinea (+675)", flag: "🇵🇬"},
+            {val: "+676", label: "Tonga (+676)", flag: "🇹🇴"},
+            {val: "+677", label: "Solomon Islands (+677)", flag: "🇸🇧"},
+            {val: "+678", label: "Vanuatu (+678)", flag: "🇻🇺"},
+            {val: "+679", label: "Fiji (+679)", flag: "🇫🇯"},
+            {val: "+680", label: "Palau (+680)", flag: "🇵🇼"},
+            {val: "+681", label: "Wallis and Futuna (+681)", flag: "🇼🇫"},
+            {val: "+682", label: "Cook Islands (+682)", flag: "🇨🇰"},
+            {val: "+683", label: "Niue (+683)", flag: "🇳🇺"},
+            {val: "+685", label: "Samoa (+685)", flag: "🇼🇸"},
+            {val: "+686", label: "Kiribati (+686)", flag: "🇰🇮"},
+            {val: "+687", label: "New Caledonia (+687)", flag: "🇳🇨"},
+            {val: "+688", label: "Tuvalu (+688)", flag: "🇹🇻"},
+            {val: "+689", label: "French Polynesia (+689)", flag: "🇵🇫"},
+            {val: "+690", label: "Tokelau (+690)", flag: "🇹🇰"},
+            {val: "+691", label: "Micronesia (+691)", flag: "🇫🇲"},
+            {val: "+692", label: "Marshall Islands (+692)", flag: "🇲🇭"},
+            {val: "+800", label: "International Freephone (+800)", flag: "📞"},
+            {val: "+808", label: "Shared Cost Service (+808)", flag: "📞"},
+            {val: "+850", label: "North Korea (+850)", flag: "🇰🇵"},
+            {val: "+852", label: "Hong Kong (+852)", flag: "🇭🇰"},
+            {val: "+853", label: "Macau (+853)", flag: "🇲🇴"},
+            {val: "+855", label: "Cambodia (+855)", flag: "🇰🇭"},
+            {val: "+856", label: "Laos (+856)", flag: "🇱🇦"},
+            {val: "+870", label: "Inmarsat SNAC (+870)", flag: "🛰️"},
+            {val: "+878", label: "Universal Personal Telecommunication (+878)", flag: "📞"},
+            {val: "+880", label: "Bangladesh (+880)", flag: "🇧🇩"},
+            {val: "+881", label: "Global Mobile Satellite System (+881)", flag: "🛰️"},
+            {val: "+882", label: "International Networks (+882)", flag: "📞"},
+            {val: "+883", label: "International Networks (+883)", flag: "📞"},
+            {val: "+886", label: "Taiwan (+886)", flag: "🇹🇼"},
+            {val: "+960", label: "Maldives (+960)", flag: "🇲🇻"},
+            {val: "+961", label: "Lebanon (+961)", flag: "🇱🇧"},
+            {val: "+962", label: "Jordan (+962)", flag: "🇯🇴"},
+            {val: "+963", label: "Syria (+963)", flag: "🇸🇾"},
+            {val: "+964", label: "Iraq (+964)", flag: "🇮🇶"},
+            {val: "+965", label: "Kuwait (+965)", flag: "🇰🇼"},
+            {val: "+966", label: "Saudi Arabia (+966)", flag: "🇸🇦"},
+            {val: "+967", label: "Yemen (+967)", flag: "🇾🇪"},
+            {val: "+968", label: "Oman (+968)", flag: "🇴🇲"},
+            {val: "+970", label: "Palestine (+970)", flag: "🇵🇸"},
+            {val: "+971", label: "United Arab Emirates (+971)", flag: "🇦🇪"},
+            {val: "+972", label: "Israel (+972)", flag: "🇮🇱"},
+            {val: "+973", label: "Bahrain (+973)", flag: "🇧🇭"},
+            {val: "+974", label: "Qatar (+974)", flag: "🇶🇦"},
+            {val: "+975", label: "Bhutan (+975)", flag: "🇧🇹"},
+            {val: "+976", label: "Mongolia (+976)", flag: "🇲🇳"},
+            {val: "+977", label: "Nepal (+977)", flag: "🇳🇵"},
+            {val: "+992", label: "Tajikistan (+992)", flag: "🇹🇯"},
+            {val: "+993", label: "Turkmenistan (+993)", flag: "🇹🇲"},
+            {val: "+994", label: "Azerbaijan (+994)", flag: "🇦🇿"},
+            {val: "+995", label: "Georgia (+995)", flag: "🇬🇪"},
+            {val: "+996", label: "Kyrgyzstan (+996)", flag: "🇰🇬"},
+            {val: "+998", label: "Uzbekistan (+998)", flag: "🇺🇿"}
+        ];
+
+        new TomSelect("#regCountryCode", {
+            options: countryData,
+            valueField: 'val',
+            labelField: 'label',
+            searchField: 'label',
+            maxOptions: null,
+            items: ['+233'], // Default to Ghana
+            render: {
+                option: function(data, escape) {
+                    return '<div><span style="margin-right: 10px;">' + data.flag + '</span>' + escape(data.label) + '</div>';
+                },
+                item: function(data, escape) {
+                    return '<div>' + (data.flag ? '<span style="margin-right: 5px;">' + data.flag + '</span>' : '') + escape(data.val) + '</div>';
+                }
+            }
+        });
+
+        // --- Tom Select for Nationality ---
+        const nationalities = [
+            "Afghan", "Albanian", "Algerian", "American", "Andorran", "Angolan", "Antiguans", "Argentinean", "Armenian", "Australian", "Austrian", "Azerbaijani", "Bahamian", "Bahraini", "Bangladeshi", "Barbadian", "Barbudans", "Batswana", "Belarusian", "Belgian", "Belizean", "Beninese", "Bhutanese", "Bolivian", "Bosnian", "Brazilian", "British", "Bruneian", "Bulgarian", "Burkinabe", "Burmese", "Burundian", "Cambodian", "Cameroonian", "Canadian", "Cape Verdean", "Central African", "Chadian", "Chilean", "Chinese", "Colombian", "Comoran", "Congolese", "Costa Rican", "Croatian", "Cuban", "Cypriot", "Czech", "Danish", "Djibouti", "Dominican", "Dutch", "East Timorese", "Ecuadorean", "Egyptian", "Emirian", "Equatorial Guinean", "Eritrean", "Estonian", "Ethiopian", "Fijian", "Filipino", "Finnish", "French", "Gabonese", "Gambian", "Georgian", "German", "Ghanaian", "Greek", "Grenadian", "Guatemalan", "Guinea-Bissauan", "Guinean", "Guyanese", "Haitian", "Herzegovinian", "Honduran", "Hungarian", "Icelander", "Indian", "Indonesian", "Iranian", "Iraqi", "Irish", "Israeli", "Italian", "Ivorian", "Jamaican", "Japanese", "Jordanian", "Kazakhstani", "Kenyan", "Kittian and Nevisian", "Kuwaiti", "Kyrgyz", "Laotian", "Latvian", "Lebanese", "Liberian", "Libyan", "Liechtensteiner", "Lithuanian", "Luxembourger", "Macedonian", "Malagasy", "Malawian", "Malaysian", "Maldivan", "Malian", "Maltese", "Marshallese", "Mauritanian", "Mauritian", "Mexican", "Micronesian", "Moldovan", "Monacan", "Mongolian", "Moroccan", "Mosotho", "Motswana", "Mozambican", "Namibian", "Nauruan", "Nepalese", "New Zealander", "Ni-Vanuatu", "Nicaraguan", "Nigerian", "Nigerien", "North Korean", "Northern Irish", "Norwegian", "Omani", "Pakistani", "Palauan", "Palestinian", "Panamanian", "Papua New Guinean", "Paraguayan", "Peruvian", "Polish", "Portuguese", "Qatari", "Romanian", "Russian", "Rwandan", "Saint Lucian", "Salvadoran", "Samoan", "San Marinese", "Sao Tomean", "Saudi", "Scottish", "Senegalese", "Serbian", "Seychellois", "Sierra Leonean", "Singaporean", "Slovakian", "Slovenian", "Solomon Islander", "Somali", "South African", "South Korean", "Spanish", "Sri Lankan", "Sudanese", "Surinamer", "Swazi", "Swedish", "Swiss", "Syrian", "Taiwanese", "Tajik", "Tanzanian", "Thai", "Togolese", "Tongan", "Trinidadian or Tobagonian", "Tunisian", "Turkish", "Tuvaluan", "Ugandan", "Ukrainian", "Uruguayan", "Uzbekistani", "Venezuelan", "Vietnamese", "Welsh", "Yemenite", "Zambian", "Zimbabwean"
+        ];
+
+        new TomSelect("#regNationality", {
+            options: nationalities.map(n => ({val: n, label: n})),
+            valueField: 'val',
+            labelField: 'label',
+            searchField: 'label',
+            create: true,
+            maxOptions: null
+        });
+
+        // Auto-detect User Location
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.country_calling_code) {
+                    const code = data.country_calling_code;
+                    const el = document.getElementById('regCountryCode');
+                    if (el && el.tomselect && el.tomselect.options[code]) {
+                        el.tomselect.setValue(code);
+                    }
+                }
+            })
+            .catch(error => console.log('Location detection failed:', error));
+    </script>
+</body>
+</html>

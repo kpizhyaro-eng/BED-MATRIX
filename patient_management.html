@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Admissions - BedMatrix</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.default.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            height: 100vh;
+            background-color: #f1f5f9;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 80px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            /* transition: width 0.3s ease; Removed */
+            overflow: visible;
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #38bdf8;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            overflow: visible;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .nav-links li { 
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+        }
+
+        /* Text Visibility Control */
+        .user-profile div:last-child {
+            display: none !important;
+        }
+
+        .logo-text {
+            font-weight: 800;
+            font-size: 20px;
+            background: linear-gradient(45deg, #38bdf8, #818cf8, #c084fc);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: logoShimmer 3s ease infinite;
+        }
+
+        @keyframes logoShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .link-text {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1e293b;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-left: 15px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .link-text::before {
+            content: '';
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-right-color: #1e293b;
+        }
+
+        .nav-links a:hover .link-text {
+            display: block;
+            opacity: 1;
+        }
+
+        .user-profile {
+            margin-top: auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-profile:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 { margin: 0; color: #0f172a; font-size: 28px; }
+
+        /* Controls Toolbar */
+        .controls-toolbar {
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 10px 10px 38px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .filter-select {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #334155;
+            outline: none;
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .btn-primary:hover { background: #1e293b; }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: #334155;
+            font-size: 14px;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-occupied { background-color: #fee2e2; color: #991b1b; }
+        .status-isolation { background-color: #f3e8ff; color: #7e22ce; }
+        .status-discharging { background-color: #ffedd5; color: #c2410c; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        .modal-card {
+            background: white; width: 100%; max-width: 500px; border-radius: 12px; padding: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.open .modal-card { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h2 { margin: 0; color: #0f172a; font-size: 20px; }
+        .close-btn { background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #334155; font-size: 14px; font-weight: 600; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 12px; background-color: #0f172a; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background-color: #1e293b; }
+
+        .btn-edit {
+            padding: 6px 12px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;
+        }
+        .btn-edit:hover { background-color: #2563eb; }
+
+        /* Notification Styles */
+        .notification-container { position: fixed; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+        .notification { background: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-left: 4px solid #3b82f6; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-width: 300px; font-size: 14px; color: #334155; }
+        .notification.show { transform: translateX(0); }
+        .notification.success { border-left-color: #22c55e; }
+        .notification.error { border-left-color: #ef4444; }
+
+        /* Pagination Styles */
+        .pagination-controls { display: flex; justify-content: center; align-items: center; margin-top: 20px; padding: 12px 20px; background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .page-info { color: #64748b; font-size: 14px; font-weight: 500; }
+        .btn-page { padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer; color: #334155; font-size: 14px; transition: all 0.2s; font-weight: 600; }
+        .btn-page:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; color: #0f172a; }
+        .btn-page:disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; }
+
+        /* Custom Alert Modal */
+        #alertModal .modal-card { max-width: 380px; text-align: center; padding: 30px; }
+        #alertModal h2 { margin-bottom: 10px; color: #0f172a; }
+        #alertModal p { color: #64748b; margin-bottom: 25px; line-height: 1.5; }
+        .btn-alert-ok { width: 100%; padding: 12px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: #0f172a; color: #e2e8f0; }
+        .dark-mode .controls-toolbar, .dark-mode .table-container, .dark-mode .modal-card { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
+        .dark-mode .header h1, .dark-mode .modal-header h2, .dark-mode h3 { color: #f8fafc !important; }
+        .dark-mode .form-control, .dark-mode .filter-select, .dark-mode .search-box input { background-color: #334155; border-color: #475569; color: white; }
+        .dark-mode .form-group label { color: #94a3b8; }
+        .dark-mode th { background-color: #0f172a; color: #94a3b8; border-bottom-color: #334155; }
+        .dark-mode td { color: #e2e8f0; border-bottom-color: #334155; }
+        .dark-mode tr:hover td { background-color: #334155; }
+        .dark-mode .pagination-controls { background-color: #1e293b; border-color: #334155; }
+        .dark-mode .btn-page { background-color: #334155; border-color: #475569; color: white; }
+        .dark-mode .btn-page:hover:not(:disabled) { background-color: #475569; }
+        .dark-mode .btn-page:disabled { background-color: #0f172a; }
+
+        /* Global Polish */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::selection { background: #38bdf8; color: white; }
+        
+        body.dark-mode ::-webkit-scrollbar-thumb { background: #475569; }
+        body.dark-mode ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .main-content { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+            .sidebar, .controls-toolbar, .pagination-controls, .btn-edit, #notification-container { display: none !important; }
+            .main-content { padding: 0; margin: 0; overflow: visible; }
+            body { background-color: white; height: auto; display: block; }
+            .table-container { box-shadow: none; border: 1px solid #e2e8f0; }
+        }
+
+        /* Tom Select Customization */
+        .ts-wrapper.country-select { width: 110px; flex-shrink: 0; }
+        .ts-wrapper.nationality-select { width: 100%; }
+        .ts-control {
+            padding: 8px 8px !important;
+            min-height: unset !important;
+            height: 42px;
+            border-radius: 6px !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        /* Patient Card Grid Styles */
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .patient-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .patient-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .patient-avatar {
+            width: 42px;
+            height: 42px;
+            background: #f1f5f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #64748b;
+            margin-right: 12px;
+            font-size: 14px;
+        }
+
+        .patient-details h3 { margin: 0; font-size: 16px; color: #0f172a; font-weight: 600; }
+        .patient-id { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+        .card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .info-group label { display: block; font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .info-group div { font-size: 14px; color: #334155; font-weight: 500; }
+
+        .card-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+        .btn-edit { width: 100%; padding: 10px; background-color: #f8fafc; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; transition: all 0.2s; }
+        .btn-edit:hover { background-color: #e2e8f0; color: #0f172a; border-color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div id="notification-container" class="notification-container"></div>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="logo-text">BedMatrix</span>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> <span class="link-text">Dashboard Overview</span></a></li>
+            <li><a href="bed_management.html"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22h20"></path><path d="M2 10h20"></path><path d="M5 10v12"></path><path d="M19 10v12"></path><path d="M4 6h16"></path></svg> <span class="link-text">Bed Management</span></a></li>
+            <li><a href="#" class="active"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> <span class="link-text">Patient Admissions</span></a></li>
+            <li><a href="discharge_unit.html"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg> <span class="link-text">Discharge Unit</span></a></li>
+            <li><a href="notifications.html"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> <span class="link-text">Notifications</span></a></li>
+            <li><a href="reports_analytics.html"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> <span class="link-text">Reports & Analytics</span></a></li>
+            <li style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <a href="#" id="logoutBtn" style="color: #ef4444;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> <span class="link-text">Logout</span></a>
+            </li>
+        </ul>
+        <div class="user-profile" onclick="window.location.href='profile.html'">
+            <div class="avatar" id="userAvatar">--</div>
+            <div>
+                <div style="font-size: 14px; font-weight: 600;" id="userName">Guest</div>
+                <div style="font-size: 12px; color: #94a3b8;" id="userRole">Staff</div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>Patient Admissions</h1>
+        </div>
+
+        <div class="controls-toolbar">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Search by name, ID, or bed number...">
+            </div>
+            <select id="wardFilter" class="filter-select">
+                <option value="all">All Wards</option>
+                <!-- Populated dynamically -->
+            </select>
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="occupied">Admitted (Stable)</option>
+                <option value="isolation">Isolation</option>
+                <option value="discharging">Discharging</option>
+            </select>
+            <select id="sortFilter" class="filter-select">
+                <option value="date_desc">Date: Newest First</option>
+                <option value="date_asc">Date: Oldest First</option>
+                <option value="name_asc">Name: A-Z</option>
+                <option value="name_desc">Name: Z-A</option>
+            </select>
+            <button id="toolbarAdmitBtn" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Admit Patient
+            </button>
+        </div>
+
+        <div id="patientGrid" class="patient-grid">
+            <!-- Cards will be populated here -->
+        </div>
+
+        <div class="pagination-controls">
+            <span class="page-info">Total Patients: <span id="totalItems">0</span></span>
+        </div>
+    </main>
+
+    <!-- Admission Modal -->
+    <div class="modal-overlay" id="admissionModal">
+        <div class="modal-card" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>🏥 Patient Admission Platform</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <form id="admissionForm">
+                <!-- Section 1: Basic Information -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase;">Basic Patient Information</h3>
+                    
+                    <div class="form-group">
+                        <label>Patient Full Name</label>
+                        <input type="text" id="pName" class="form-control" required placeholder="e.g. Jane Doe">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="pAge" class="form-control" required placeholder="Age" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="pGender" class="form-control">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                        <div class="form-group">
+                            <label>Nationality</label>
+                            <select id="pNationality" class="nationality-select" placeholder="Select Nationality..."></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <div style="display: flex; gap: 8px;">
+                                <select id="pCountryCode" class="country-select"></select>
+                                <input type="tel" id="pPhone" class="form-control" placeholder="xxxxxxxxx">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Date of Birth</label>
+                            <input type="date" id="pDOB" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Medical Information -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase;">Medical Information</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Primary Diagnosis</label>
+                            <input type="text" id="pCondition" class="form-control" required placeholder="e.g. Chest Pain">
+                        </div>
+                        <div class="form-group">
+                            <label>Severity</label>
+                            <select id="pSeverity" class="form-control">
+                                <option value="Stable">Stable</option>
+                                <option value="Critical">Critical</option>
+                                <option value="Emergency">Emergency</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Allergies</label>
+                            <input type="text" id="pAllergies" class="form-control" placeholder="None">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Medications</label>
+                            <input type="text" id="pMedications" class="form-control" placeholder="None">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Ward Assignment -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase;">Ward & Bed Assignment</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Assign Ward</label>
+                            <select id="pWard" class="form-control" required></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Admission Status</label>
+                            <select id="pStatus" class="form-control">
+                                <option value="occupied">Admitted (Stable)</option>
+                                <option value="isolation">Isolation Ward</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Emergency Contact -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase;">Emergency Contact</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Name</label>
+                            <input type="text" id="pEmergencyName" class="form-control" placeholder="Family Member">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Phone</label>
+                            <div style="display: flex; gap: 8px;">
+                                <select id="pEmergCountryCode" class="country-select"></select>
+                                <input type="tel" id="pEmergencyPhone" class="form-control" placeholder="xxxxxxxxx">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <button type="button" class="btn-submit" style="background-color: #94a3b8; cursor: pointer;" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">✓ Admit Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Patient Modal -->
+    <div class="modal-overlay" id="editPatientModal">
+        <div class="modal-card" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>Edit Patient Details</h2>
+                <button class="close-btn" onclick="closeEditModal()">×</button>
+            </div>
+            <form id="editPatientForm">
+                <input type="hidden" id="editBedId">
+                
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase;">Basic Information</h3>
+                    <div class="form-group">
+                        <label>Patient Full Name</label>
+                        <input type="text" id="editName" class="form-control" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="editAge" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="editGender" class="form-control">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nationality</label>
+                        <select id="editNationality" class="nationality-select" placeholder="Select Nationality..."></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="editCountryCode" class="country-select"></select>
+                            <input type="tel" id="editPhone" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase;">Medical Information</h3>
+                    <div class="form-group">
+                        <label>Diagnosis</label>
+                        <input type="text" id="editCondition" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Severity</label>
+                        <select id="editSeverity" class="form-control">
+                            <option value="Stable">Stable</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Emergency">Emergency</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <button type="button" class="btn-submit" style="background-color: #94a3b8;" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div class="modal-overlay" id="alertModal">
+        <div class="modal-card">
+            <h2 id="alertTitle">Alert</h2>
+            <p id="alertMessage">Something happened.</p>
+            <button class="btn-alert-ok" onclick="closeAlertModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // Check Dark Mode
+        if (localStorage.getItem('nbs_dark_mode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Session Management
+        const currentUser = JSON.parse(localStorage.getItem('nbs_current_user'));
+        if (!currentUser) {
+            // Fallback for demo/testing
+            document.getElementById('userName').textContent = 'Administrator';
+            document.getElementById('userRole').textContent = 'Admin';
+            document.getElementById('userAvatar').textContent = 'A';
+        } else {
+            document.getElementById('userName').textContent = currentUser.fullName;
+            const roleMap = { 'DOC': 'Doctor', 'ADM': 'Administrator', 'NUR': 'Nurse', 'WMG': 'Ward Manager', 'REC': 'Records Officer' };
+            document.getElementById('userRole').textContent = roleMap[currentUser.role] || currentUser.role;
+            document.getElementById('userAvatar').textContent = currentUser.fullName.charAt(0);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('nbs_current_user');
+            window.location.href = 'hospital_background.html';
+        });
+
+        // Data Loading
+        let allBeds = [];
+
+        function initDataIfMissing() {
+            // Force reset to apply new names
+            localStorage.removeItem('nbs_beds');
+
+            const wards = [
+                { name: "General Ward A", beds: 50, prefix: "GW-A" },
+                { name: "General Ward B", beds: 50, prefix: "GW-B" },
+                { name: "Intensive Care Unit (ICU)", beds: 30, prefix: "ICU" },
+                { name: "Emergency Room", beds: 40, prefix: "ER" },
+                { name: "Maternity Ward", beds: 30, prefix: "MAT" },
+                { name: "Surgical Ward", beds: 40, prefix: "SUR" },
+                { name: "Private Ward", beds: 15, prefix: "PVT" }
+            ];
+
+            const maleNames = [
+                "James Mensah", "John Boateng", "Michael Owusu", "Daniel Asante", "David Appiah",
+                "Samuel Agyeman", "Joseph Osei", "Peter Addo", "Paul Tetteh", "Mark Annan",
+                "Andrew Darko", "Stephen Amankwah", "Robert Nyarko", "Thomas Boadu", "Charles Frimpong",
+                "Benjamin Yeboah", "Joshua Oppong", "Matthew Acheampong", "Luke Adu", "Simon Quartey",
+                "Nicholas Lamptey", "Isaac Koranteng", "Jonathan Mensah", "Eric Boateng", "Victor Owusu",
+                "Kelvin Asante", "Dennis Appiah", "Frank Agyeman", "Martin Osei", "Albert Addo",
+                "Raymond Tetteh", "Patrick Annan", "Edward Darko", "Calvin Amankwah", "George Nyarko",
+                "Henry Boadu", "Alfred Frimpong", "Emmanuel Yeboah", "Ronald Oppong", "Felix Acheampong",
+                "Brian Adu", "Victor Quartey", "Leon Lamptey", "Moses Koranteng", "Aaron Mensah",
+                "Jeffrey Boateng", "Oliver Owusu", "Allan Asante", "Trevor Appiah", "Stanley Agyeman",
+                "Philip Osei", "Kenneth Addo", "Julian Tetteh", "Dominic Annan", "Victor Darko",
+                "Adrian Amankwah", "Lawrence Nyarko", "Eugene Boadu", "Harold Frimpong", "Wilfred Yeboah",
+                "Percy Oppong", "Clinton Acheampong", "Derrick Adu", "Marvin Quartey", "Ivan Lamptey",
+                "Elijah Koranteng", "Leonard Mensah", "Austin Boateng", "Bruce Owusu", "Shawn Asante",
+                "Colin Appiah", "Reginald Agyeman", "Tobias Osei", "Herman Addo", "Nelson Tetteh",
+                "Wilson Annan", "Terrence Darko", "Maxwell Amankwah", "Gordon Nyarko", "Victor Boadu",
+                "Fabian Frimpong", "Nathaniel Yeboah", "Oliver Oppong", "Damian Acheampong", "Miles Adu",
+                "Preston Quartey", "Corey Lamptey", "Silas Koranteng", "Jordan Mensah", "Justin Boateng",
+                "Lucas Owusu", "Cameron Asante", "Dylan Appiah", "Noel Agyeman", "Byron Osei",
+                "Wayne Addo", "Desmond Tetteh", "Arnold Annan", "Zachary Amankwah", "Brandon Mensah",
+                "Kyle Boateng", "Evan Owusu", "Scott Asante", "Neil Appiah", "Roger Agyeman",
+                "Dean Osei", "Blake Addo", "Sean Tetteh", "Colin Annan", "Troy Darko",
+                "Hugh Amankwah", "Keith Nyarko", "Logan Boadu", "Shane Frimpong", "Brett Yeboah",
+                "Ryan Oppong", "Cole Acheampong", "Alan Adu", "Jude Quartey", "Victor Lamptey",
+                "Marcus Koranteng", "Paul Mensah", "Mark Boateng", "Daniel Owusu", "James Asante",
+                "Michael Appiah", "Samuel Agyeman", "Joseph Osei", "Peter Addo", "Paul Tetteh",
+                "Mark Annan", "Andrew Darko", "Stephen Amankwah", "Robert Nyarko", "Thomas Boadu",
+                "Charles Frimpong", "Benjamin Yeboah", "Joshua Oppong", "Matthew Acheampong", "Luke Adu",
+                "Simon Quartey", "Nicholas Lamptey", "Isaac Koranteng", "Jonathan Mensah", "Eric Boateng",
+                "Victor Owusu", "Kelvin Asante", "Dennis Appiah", "Frank Agyeman", "Martin Osei",
+                "Albert Addo", "Raymond Tetteh", "Patrick Annan", "Edward Darko", "Calvin Amankwah",
+                "George Nyarko", "Henry Boadu", "Alfred Frimpong", "Emmanuel Yeboah", "Ronald Oppong",
+                "Felix Acheampong", "Brian Adu", "Victor Quartey", "Leon Lamptey", "Moses Koranteng",
+                "Aaron Mensah", "Jeffrey Boateng", "Oliver Owusu", "Allan Asante", "Trevor Appiah",
+                "Stanley Agyeman", "Philip Osei", "Kenneth Addo", "Julian Tetteh", "Dominic Annan",
+                "Victor Darko", "Adrian Amankwah", "Lawrence Nyarko", "Eugene Boadu", "Harold Frimpong",
+                "Wilfred Yeboah", "Percy Oppong", "Clinton Acheampong", "Derrick Adu", "Marvin Quartey",
+                "Ivan Lamptey", "Elijah Koranteng", "Leonard Mensah", "Austin Boateng", "Bruce Owusu",
+                "Shawn Asante", "Colin Appiah", "Reginald Agyeman", "Tobias Osei", "Herman Addo",
+                "Nelson Tetteh", "Wilson Annan", "Terrence Darko", "Maxwell Amankwah", "Gordon Nyarko",
+                "Victor Boadu", "Fabian Frimpong", "Nathaniel Yeboah", "Oliver Oppong", "Damian Acheampong",
+                "Miles Adu", "Preston Quartey", "Corey Lamptey", "Silas Koranteng", "Jordan Mensah",
+                "Justin Boateng", "Lucas Owusu", "Cameron Asante", "Dylan Appiah", "Noel Agyeman",
+                "Byron Osei", "Wayne Addo", "Desmond Tetteh", "Arnold Annan"
+            ];
+
+            const femaleNames = [
+                "Grace Mensah", "Mary Boateng", "Sarah Owusu", "Abigail Asante", "Esther Appiah",
+                "Hannah Agyeman", "Elizabeth Osei", "Rebecca Addo", "Naomi Tetteh", "Rachel Annan",
+                "Sophia Darko", "Deborah Amankwah", "Patricia Nyarko", "Christina Boadu", "Victoria Frimpong",
+                "Angela Yeboah", "Janet Oppong", "Margaret Acheampong", "Lydia Adu", "Dorothy Quartey",
+                "Priscilla Lamptey", "Joyce Koranteng", "Michelle Mensah", "Emily Boateng", "Vanessa Owusu",
+                "Clara Asante", "Diana Appiah", "Faith Agyeman", "Janice Osei", "Linda Addo",
+                "Gloria Tetteh", "Florence Annan", "Pauline Darko", "Roselyn Amankwah", "Beatrice Nyarko",
+                "Martha Boadu", "Gertrude Frimpong", "Evelyn Yeboah", "Cynthia Oppong", "Alice Acheampong",
+                "Irene Adu", "Monica Quartey", "Sharon Lamptey", "Ruth Koranteng", "Amanda Mensah",
+                "Jessica Boateng", "Nicole Owusu", "Karen Asante", "Ella Appiah", "Hope Agyeman",
+                "Josephine Osei", "Mercy Addo", "Theresa Tetteh", "Veronica Annan", "Anita Darko",
+                "Frances Amankwah", "Phyllis Nyarko", "Adelaide Boadu", "Millicent Frimpong", "Paulina Yeboah",
+                "Bridget Oppong", "Agnes Acheampong", "Bernice Adu", "Joan Quartey", "Stella Lamptey",
+                "Comfort Koranteng", "Olivia Mensah", "Stephanie Boateng", "Natalie Owusu", "Lucy Asante",
+                "Debra Appiah", "Grace Agyeman", "Felicia Osei", "Regina Addo", "Christabel Tetteh",
+                "Helena Annan", "Mavis Darko", "Maureen Amankwah", "Edna Nyarko", "Victoria Boadu",
+                "Eunice Frimpong", "Juliet Yeboah", "Sandra Oppong", "Charlotte Acheampong", "Winifred Adu",
+                "Paulina Quartey", "Doris Lamptey", "Constance Koranteng", "Isabella Mensah", "Alexandra Boateng",
+                "Victoria Owusu", "Melissa Asante", "Phoebe Appiah", "Peace Agyeman", "Serena Osei",
+                "Belinda Addo", "Rosalind Tetteh", "Nora Annan", "Claudia Darko", "Victoria Amankwah",
+                "Nancy Nyarko", "Ivy Boadu", "Deborah Frimpong", "Lilian Yeboah", "Doreen Oppong",
+                "Madeline Acheampong", "Joy Adu", "Estelle Quartey", "Pearl Lamptey", "Charity Koranteng",
+                "Victoria Mensah", "Jennifer Boateng", "Danielle Owusu", "Rebecca Asante", "Stacy Appiah",
+                "Charmaine Agyeman", "Amanda Osei", "Angela Addo", "Janette Tetteh", "Sylvia Annan",
+                "Catherine Darko", "Rebecca Amankwah", "Geraldine Nyarko", "Rosemary Boadu", "Dorcas Frimpong",
+                "Leticia Yeboah", "Linda Oppong", "Therese Acheampong", "Victoria Adu", "Judith Quartey",
+                "Hilda Lamptey", "Prudence Koranteng", "Melissa Mensah", "Karen Boateng", "Nicole Owusu",
+                "Claudine Asante", "Erica Appiah", "Patience Agyeman", "Matilda Osei", "Verna Addo",
+                "Anastasia Tetteh", "Iris Annan", "Selina Darko", "Sophia Amankwah", "Akosua Nyarko",
+                "Adwoa Boadu", "Abena Frimpong", "Afia Yeboah", "Ama Oppong", "Esi Acheampong",
+                "Naa Adu", "Akua Quartey", "Dede Lamptey", "Korkor Koranteng", "Evelyn Mensah",
+                "Ruth Boateng", "Gloria Owusu", "Marian Asante", "Edwina Appiah", "Felicity Agyeman",
+                "Irene Osei", "Janet Addo", "Monica Tetteh", "Vivian Annan", "Pauline Darko",
+                "Alberta Amankwah", "Naomi Nyarko", "Cecilia Boadu", "Rebecca Frimpong", "Yvonne Yeboah",
+                "Priscilla Oppong", "Angela Acheampong", "Maureen Adu", "Lydia Quartey", "Bernadette Lamptey",
+                "Victoria Koranteng", "Esther Mensah", "Doris Boateng", "Regina Owusu", "Caroline Asante",
+                "Hannah Appiah", "Mildred Agyeman", "Lucy Osei", "Diana Addo", "Gertrude Tetteh",
+                "Alice Annan", "Janet Darko", "Philomena Amankwah", "Linda Nyarko", "Mabel Boadu",
+                "Shirley Frimpong", "Monica Yeboah", "Cynthia Oppong", "Rita Acheampong", "Joyce Adu",
+                "Eleanor Quartey", "Patricia Lamptey", "Sarah Koranteng", "Naomi Mensah", "Rebecca Boateng",
+                "Theresa Owusu", "Abigail Asante", "Martha Appiah", "Grace Agyeman", "Josephine Osei",
+                "Evelyn Addo", "Angela Tetteh", "Florence Annan", "Beatrice Darko", "Gladys Amankwah",
+                "Irene Nyarko", "Mercy Boadu", "Victoria Frimpong", "Roselyn Yeboah", "Agnes Oppong",
+                "Joan Acheampong", "Comfort Adu", "Victoria Quartey", "Stella Lamptey", "Esther Koranteng",
+                "Charlotte Mensah", "Diana Boateng", "Pauline Owusu", "Judith Asante", "Linda Appiah",
+                "Charity Agyeman", "Ruth Osei", "Regina Addo", "Sandra Tetteh", "Monica Annan",
+                "Mavis Darko", "Priscilla Amankwah", "Deborah Nyarko", "Florence Boadu", "Evelyn Frimpong",
+                "Gladys Yeboah", "Vivian Oppong", "Felicia Acheampong", "Naomi Adu", "Constance Quartey",
+                "Bernice Lamptey", "Comfort Koranteng", "Michelle Mensah", "Erica Boateng", "Natalie Owusu",
+                "Patricia Asante", "Faith Appiah", "Hope Agyeman", "Lucy Osei", "Angela Addo",
+                "Theresa Tetteh", "Rebecca Annan", "Doris Darko", "Cecilia Amankwah", "Agnes Nyarko",
+                "Mabel Boadu", "Millicent Frimpong", "Esther Yeboah", "Janet Oppong", "Rita Acheampong",
+                "Joyce Adu", "Olivia Quartey", "Sarah Lamptey", "Prudence Koranteng", "Amanda Mensah",
+                "Felicity Boateng", "Stephanie Owusu", "Irene Asante", "Monica Appiah", "Peace Agyeman",
+                "Grace Osei", "Regina Addo", "Veronica Tetteh", "Helena Annan", "Maureen Darko",
+                "Roselyn Amankwah", "Beatrice Nyarko", "Martha Boadu", "Eunice Frimpong", "Juliet Yeboah",
+                "Sandra Oppong", "Charlotte Acheampong", "Winifred Adu", "Doris Quartey", "Stella Lamptey",
+                "Comfort Koranteng", "Isabella Mensah", "Alexandra Boateng", "Victoria Owusu", "Melissa Asante",
+                "Phoebe Appiah", "Patience Agyeman", "Matilda Osei", "Verna Addo", "Anastasia Tetteh",
+                "Iris Annan", "Selina Darko", "Sophia Amankwah", "Akosua Nyarko", "Adwoa Boadu"
+            ];
+
+            const conditions = ["Malaria", "Typhoid Fever", "Acute Appendicitis", "Fracture", "Hypertension", "Diabetes", "Pneumonia", "Gastroenteritis", "Hernia", "Bronchitis"];
+            const severities = ["Stable", "Stable", "Stable", "Critical", "Emergency"];
+
+            let generatedBeds = [];
+            wards.forEach(ward => {
+                for(let i = 1; i <= ward.beds; i++) {
+                    const rand = Math.random();
+                    let status = 'available';
+                    let patient = 'Empty';
+                    let admissionDate = '-';
+                    let gender = '-';
+                    let age = '-';
+                    let patientId = '-';
+                    let diagnosis = '-';
+                    let conditionStatus = '-';
+                    let phone = '-';
+                    let emergencyName = '-';
+                    let emergencyPhone = '-';
+
+                    if (rand > 0.30) {
+                        status = 'occupied';
+                        admissionDate = new Date(Date.now() - Math.floor(Math.random() * 10 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+                        gender = Math.random() > 0.5 ? 'Male' : 'Female';
+                        
+                        if (gender === 'Male') {
+                            patient = maleNames[Math.floor(Math.random() * maleNames.length)];
+                        } else {
+                            patient = femaleNames[Math.floor(Math.random() * femaleNames.length)];
+                        }
+                        age = Math.floor(Math.random() * 60) + 18;
+                        patientId = `P-${Math.floor(100000 + Math.random() * 900000)}`;
+                        diagnosis = conditions[Math.floor(Math.random() * conditions.length)];
+                        conditionStatus = severities[Math.floor(Math.random() * severities.length)];
+                        phone = `+1-555-${Math.floor(1000 + Math.random() * 9000)}`;
+                        emergencyName = "Emergency Contact";
+                        emergencyPhone = `+1-555-${Math.floor(1000 + Math.random() * 9000)}`;
+                    } else if (rand > 0.20) {
+                        status = 'untidy';
+                        patient = 'Needs Cleaning';
+                    } else if (rand > 0.15) {
+                        status = 'reserved';
+                    } else if (rand > 0.10) {
+                        status = 'discharging';
+                        if (Math.random() > 0.5) {
+                             patient = maleNames[Math.floor(Math.random() * maleNames.length)];
+                             gender = 'Male';
+                        } else {
+                             patient = femaleNames[Math.floor(Math.random() * femaleNames.length)];
+                             gender = 'Female';
+                        }
+                        age = Math.floor(Math.random() * 60) + 18;
+                        patientId = `P-${Math.floor(100000 + Math.random() * 900000)}`;
+                    }
+
+                    generatedBeds.push({
+                        id: `${ward.prefix}-${String(i).padStart(2, '0')}`,
+                        ward: ward.name,
+                        status: status,
+                        patient: patient,
+                        type: (i % 2 === 0) ? 'Standard' : 'Adjustable',
+                        room: `Room ${Math.ceil(i/4)}`,
+                        admissionDate: admissionDate,
+                        gender: gender,
+                        age: age,
+                        patientId: patientId,
+                        diagnosis: diagnosis,
+                        conditionStatus: conditionStatus,
+                        phone: phone,
+                        emergencyContactName: emergencyName,
+                        emergencyContactPhone: emergencyPhone
+                    });
+                }
+            });
+            localStorage.setItem('nbs_beds', JSON.stringify(generatedBeds));
+        }
+
+        initDataIfMissing();
+        allBeds = JSON.parse(localStorage.getItem('nbs_beds') || '[]');
+        
+        // Populate Ward Filter
+        const wards = [...new Set(allBeds.map(b => b.ward))].sort();
+        const wardSelect = document.getElementById('wardFilter');
+        wards.forEach(w => {
+            const opt = document.createElement('option');
+            opt.value = w;
+            opt.textContent = w;
+            wardSelect.appendChild(opt);
+        });
+
+        function renderTable() {
+            const grid = document.getElementById('patientGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const wardFilter = document.getElementById('wardFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const sortFilter = document.getElementById('sortFilter').value;
+
+            // Filter Logic: Only show beds that have patients (occupied, isolation, discharging)
+            const filteredData = allBeds.filter(bed => {
+                const hasPatient = ['occupied', 'isolation', 'discharging'].includes(bed.status);
+                if (!hasPatient) return false;
+
+                // Apply Filters
+                if (wardFilter !== 'all' && bed.ward !== wardFilter) return false;
+                if (statusFilter !== 'all' && bed.status !== statusFilter) return false;
+
+                // Apply Search
+                const searchMatch = 
+                    bed.patient.toLowerCase().includes(searchTerm) ||
+                    bed.id.toLowerCase().includes(searchTerm) ||
+                    (bed.patientId && bed.patientId.toLowerCase().includes(searchTerm));
+                
+                return searchMatch;
+            });
+
+            // Sorting Logic
+            filteredData.sort((a, b) => {
+                if (sortFilter === 'date_desc') {
+                    const dateA = (a.admissionDate === '-' || !a.admissionDate) ? 0 : new Date(a.admissionDate).getTime();
+                    const dateB = (b.admissionDate === '-' || !b.admissionDate) ? 0 : new Date(b.admissionDate).getTime();
+                    return dateB - dateA;
+                } else if (sortFilter === 'date_asc') {
+                    const dateA = (a.admissionDate === '-' || !a.admissionDate) ? 0 : new Date(a.admissionDate).getTime();
+                    const dateB = (b.admissionDate === '-' || !b.admissionDate) ? 0 : new Date(b.admissionDate).getTime();
+                    return dateA - dateB;
+                } else if (sortFilter === 'name_asc') {
+                    return a.patient.localeCompare(b.patient);
+                } else if (sortFilter === 'name_desc') {
+                    return b.patient.localeCompare(a.patient);
+                }
+                return 0;
+            });
+
+            // Display Logic (Full List)
+            const totalItems = filteredData.length;
+            document.getElementById('totalItems').textContent = totalItems;
+
+            grid.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                grid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">No patients found matching your criteria.</div>`;
+                return;
+            }
+
+            filteredData.forEach(bed => {
+                const card = document.createElement('div');
+                card.className = 'patient-card';
+                
+                let statusClass = 'status-occupied';
+                let statusText = 'Admitted';
+                if (bed.status === 'isolation') { statusClass = 'status-isolation'; statusText = 'Isolation'; }
+                if (bed.status === 'discharging') { statusClass = 'status-discharging'; statusText = 'Discharging'; }
+                
+                const initials = bed.patient.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div style="display: flex; align-items: center;">
+                            <div class="patient-avatar">${initials}</div>
+                            <div class="patient-details">
+                                <h3>${bed.patient}</h3>
+                                <div class="patient-id">${bed.patientId || 'ID: --'}</div>
+                            </div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-group">
+                            <label>Diagnosis</label>
+                            <div>${bed.diagnosis || '--'}</div>
+                        </div>
+                        <div class="info-group">
+                            <label>Ward / Bed</label>
+                            <div>${bed.ward} <span style="color: #94a3b8;">#${bed.id}</span></div>
+                        </div>
+                        <div class="info-group">
+                            <label>Admitted</label>
+                            <div>${bed.admissionDate}</div>
+                        </div>
+                        <div class="info-group">
+                            <label>Age / Gender</label>
+                            <div>${bed.age} / ${bed.gender}</div>
+                        </div>
+                        <div class="info-group">
+                            <label>Condition</label>
+                            <div>${bed.conditionStatus || 'Stable'}</div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-edit" onclick="openEditModal('${bed.id}')">Edit Details</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+        document.getElementById('wardFilter').addEventListener('change', renderTable);
+        document.getElementById('statusFilter').addEventListener('change', renderTable);
+        document.getElementById('sortFilter').addEventListener('change', renderTable);
+
+        // Initial Render
+        renderTable();
+
+        // --- Admission Modal Logic ---
+        const modal = document.getElementById('admissionModal');
+        const toolbarBtn = document.getElementById('toolbarAdmitBtn');
+
+        function openAdmissionModal() {
+            // Populate Wards
+            const wards = [...new Set(allBeds.map(b => b.ward))].sort();
+            const wardSelect = document.getElementById('pWard');
+            wardSelect.innerHTML = wards.map(w => `<option value="${w}">${w}</option>`).join('');
+            modal.classList.add('open');
+        }
+
+        toolbarBtn.addEventListener('click', openAdmissionModal);
+
+        function closeModal() {
+            modal.classList.remove('open');
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        function playSuccessSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                // Simple success chime (C5 to C6 sweep)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.1); // C6
+                
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (e) { console.error('Audio play failed', e); }
+        }
+
+        function showNotification(message, type) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 10);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Custom Alert Logic
+        function showAlert(message, title = "Notice") {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.add('open');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.remove('open');
+        }
+
+        document.getElementById('admissionForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('pName').value;
+            const age = document.getElementById('pAge').value;
+            const gender = document.getElementById('pGender').value;
+            const condition = document.getElementById('pCondition').value;
+            const ward = document.getElementById('pWard').value;
+            const severity = document.getElementById('pSeverity').value || 'Stable';
+            const status = document.getElementById('pStatus').value;
+            const phoneNum = document.getElementById('pPhone').value;
+            const phoneCode = document.getElementById('pCountryCode').value;
+            const nationality = document.getElementById('pNationality').value;
+            const dob = document.getElementById('pDOB').value;
+            const allergies = document.getElementById('pAllergies').value;
+            const medications = document.getElementById('pMedications').value;
+            const emergencyName = document.getElementById('pEmergencyName').value;
+            const emergencyPhoneNum = document.getElementById('pEmergencyPhone').value;
+            const emergencyPhoneCode = document.getElementById('pEmergCountryCode').value;
+
+            // Validate Phone
+            if (phoneNum) {
+                const reqLen = getRequiredLength(phoneCode);
+                if ((reqLen > 0 && phoneNum.length !== reqLen) || (reqLen === 0 && (phoneNum.length < 7 || phoneNum.length > 15))) {
+                    showNotification(`Invalid contact number length for ${phoneCode}. Expected ${reqLen || '7-15'} digits.`, 'error');
+                    return;
+                }
+            }
+
+            const bedIndex = allBeds.findIndex(b => b.ward === ward && b.status === 'available');
+
+            if (bedIndex > -1) {
+                allBeds[bedIndex].status = status || 'occupied';
+                allBeds[bedIndex].patient = name;
+                allBeds[bedIndex].age = age;
+                allBeds[bedIndex].gender = gender;
+                allBeds[bedIndex].conditionStatus = severity;
+                allBeds[bedIndex].diagnosis = condition;
+                allBeds[bedIndex].admissionDate = new Date().toISOString().split('T')[0];
+                allBeds[bedIndex].patientId = `P-${Date.now().toString().slice(-6)}`;
+                allBeds[bedIndex].phone = phoneNum ? `${phoneCode} ${phoneNum}` : '';
+                allBeds[bedIndex].nationality = nationality;
+                allBeds[bedIndex].dob = dob;
+                allBeds[bedIndex].allergies = allergies;
+                allBeds[bedIndex].medications = medications;
+                allBeds[bedIndex].emergencyContactName = emergencyName;
+                allBeds[bedIndex].emergencyContactPhone = emergencyPhoneNum ? `${emergencyPhoneCode} ${emergencyPhoneNum}` : '';
+
+                localStorage.setItem('nbs_beds', JSON.stringify(allBeds));
+                playSuccessSound();
+                showNotification(`✓ ${name} successfully admitted to ${allBeds[bedIndex].id}!`, 'success');
+                closeModal();
+                e.target.reset();
+                renderTable();
+            } else {
+                showAlert(`No available beds found in ${ward}. Please select another ward or check bed management.`, 'Admission Failed');
+            }
+        });
+
+        // --- Edit Modal Logic ---
+        const editModal = document.getElementById('editPatientModal');
+
+        function openEditModal(bedId) {
+            const bed = allBeds.find(b => b.id === bedId);
+            if (!bed) return;
+
+            document.getElementById('editBedId').value = bed.id;
+            document.getElementById('editName').value = bed.patient;
+            document.getElementById('editAge').value = bed.age !== '-' ? bed.age : '';
+            document.getElementById('editGender').value = bed.gender !== '-' ? bed.gender : 'Male';
+            document.getElementById('editNationality').value = bed.nationality || '';
+            
+            if (bed.phone && bed.phone.includes(' ')) {
+                const parts = bed.phone.split(' ');
+                document.getElementById('editCountryCode').value = parts[0];
+                document.getElementById('editPhone').value = parts[1];
+            } else {
+                document.getElementById('editPhone').value = bed.phone || '';
+            }
+
+            document.getElementById('editCondition').value = bed.diagnosis !== '-' ? bed.diagnosis : '';
+            document.getElementById('editSeverity').value = bed.conditionStatus || 'Stable';
+
+            editModal.classList.add('open');
+        }
+
+        function closeEditModal() {
+            editModal.classList.remove('open');
+        }
+
+        document.getElementById('editPatientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bedId = document.getElementById('editBedId').value;
+            const bedIndex = allBeds.findIndex(b => b.id === bedId);
+            const phoneNum = document.getElementById('editPhone').value;
+            const phoneCode = document.getElementById('editCountryCode').value;
+
+            // Validate Phone
+            if (phoneNum) {
+                const reqLen = getRequiredLength(phoneCode);
+                if ((reqLen > 0 && phoneNum.length !== reqLen) || (reqLen === 0 && (phoneNum.length < 7 || phoneNum.length > 15))) {
+                    showNotification(`Invalid contact number length for ${phoneCode}. Expected ${reqLen || '7-15'} digits.`, 'error');
+                    return;
+                }
+            }
+
+            if (bedIndex > -1) {
+                allBeds[bedIndex].patient = document.getElementById('editName').value;
+                allBeds[bedIndex].age = document.getElementById('editAge').value;
+                allBeds[bedIndex].gender = document.getElementById('editGender').value;
+                allBeds[bedIndex].nationality = document.getElementById('editNationality').value;
+                allBeds[bedIndex].phone = phoneNum ? `${phoneCode} ${phoneNum}` : '';
+                allBeds[bedIndex].diagnosis = document.getElementById('editCondition').value;
+                allBeds[bedIndex].conditionStatus = document.getElementById('editSeverity').value;
+
+                localStorage.setItem('nbs_beds', JSON.stringify(allBeds));
+                
+                showNotification(`Patient details updated for ${allBeds[bedIndex].patient}`, 'success');
+                closeEditModal();
+                renderTable();
+            } else {
+                showNotification('Error: Patient record not found.', 'error');
+            }
+        });
+
+        // Listen for storage changes to update table in real-time
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'nbs_beds') {
+                allBeds = JSON.parse(localStorage.getItem('nbs_beds') || '[]');
+                renderTable();
+            }
+        });
+
+        // Phone Validation Logic for all phone inputs
+        function getRequiredLength(code) {
+            const lengths = { "+1": 10, "+7": 10, "+20": 10, "+27": 9, "+30": 10, "+31": 9, "+32": 9, "+33": 9, "+34": 9, "+39": 10, "+44": 10, "+49": 10, "+55": 11, "+61": 9, "+81": 10, "+86": 11, "+91": 10, "+233": 9, "+234": 10 };
+            return lengths[code] || 0; // 0 means variable length (default 7-15)
+        }
+
+        const phoneInputs = [
+            { input: 'pPhone', code: 'pCountryCode' },
+            { input: 'pEmergencyPhone', code: 'pEmergCountryCode' },
+            { input: 'editPhone', code: 'editCountryCode' }
+        ];
+
+        phoneInputs.forEach(pair => {
+            document.getElementById(pair.input).addEventListener('input', function() {
+                let val = this.value.replace(/\D/g, '');
+                if (val.startsWith('0')) val = val.substring(1);
+                const reqLen = getRequiredLength(document.getElementById(pair.code).value);
+                const maxLen = reqLen || 15;
+                if (val.length > maxLen) val = val.substring(0, maxLen);
+                this.value = val;
+            });
+        });
+
+        // Check for auto-open param from dashboard
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'admit') {
+            openAdmissionModal();
+        }
+
+        // --- Tom Select Initialization for Country Codes ---
+        const countryData = [
+            {val: "+1", label: "United States, Canada (+1)"},
+            {val: "+7", label: "Russia, Kazakhstan (+7)"},
+            {val: "+20", label: "Egypt (+20)"},
+            {val: "+27", label: "South Africa (+27)"},
+            {val: "+30", label: "Greece (+30)"},
+            {val: "+31", label: "Netherlands (+31)"},
+            {val: "+32", label: "Belgium (+32)"},
+            {val: "+33", label: "France (+33)"},
+            {val: "+34", label: "Spain (+34)"},
+            {val: "+36", label: "Hungary (+36)"},
+            {val: "+39", label: "Italy (+39)"},
+            {val: "+40", label: "Romania (+40)"},
+            {val: "+41", label: "Switzerland (+41)"},
+            {val: "+43", label: "Austria (+43)"},
+            {val: "+44", label: "United Kingdom (+44)"},
+            {val: "+45", label: "Denmark (+45)"},
+            {val: "+46", label: "Sweden (+46)"},
+            {val: "+47", label: "Norway (+47)"},
+            {val: "+48", label: "Poland (+48)"},
+            {val: "+49", label: "Germany (+49)"},
+            {val: "+51", label: "Peru (+51)"},
+            {val: "+52", label: "Mexico (+52)"},
+            {val: "+53", label: "Cuba (+53)"},
+            {val: "+54", label: "Argentina (+54)"},
+            {val: "+55", label: "Brazil (+55)"},
+            {val: "+56", label: "Chile (+56)"},
+            {val: "+57", label: "Colombia (+57)"},
+            {val: "+58", label: "Venezuela (+58)"},
+            {val: "+60", label: "Malaysia (+60)"},
+            {val: "+61", label: "Australia (+61)"},
+            {val: "+62", label: "Indonesia (+62)"},
+            {val: "+63", label: "Philippines (+63)"},
+            {val: "+64", label: "New Zealand (+64)"},
+            {val: "+65", label: "Singapore (+65)"},
+            {val: "+66", label: "Thailand (+66)"},
+            {val: "+81", label: "Japan (+81)"},
+            {val: "+82", label: "South Korea (+82)"},
+            {val: "+84", label: "Vietnam (+84)"},
+            {val: "+86", label: "China (+86)"},
+            {val: "+90", label: "Turkey (+90)"},
+            {val: "+91", label: "India (+91)"},
+            {val: "+92", label: "Pakistan (+92)"},
+            {val: "+93", label: "Afghanistan (+93)"},
+            {val: "+94", label: "Sri Lanka (+94)"},
+            {val: "+95", label: "Myanmar (+95)"},
+            {val: "+98", label: "Iran (+98)"},
+            {val: "+211", label: "South Sudan (+211)"},
+            {val: "+212", label: "Morocco (+212)"},
+            {val: "+213", label: "Algeria (+213)"},
+            {val: "+216", label: "Tunisia (+216)"},
+            {val: "+218", label: "Libya (+218)"},
+            {val: "+220", label: "Gambia (+220)"},
+            {val: "+221", label: "Senegal (+221)"},
+            {val: "+222", label: "Mauritania (+222)"},
+            {val: "+223", label: "Mali (+223)"},
+            {val: "+224", label: "Guinea (+224)"},
+            {val: "+225", label: "Côte d’Ivoire (+225)"},
+            {val: "+226", label: "Burkina Faso (+226)"},
+            {val: "+227", label: "Niger (+227)"},
+            {val: "+228", label: "Togo (+228)"},
+            {val: "+229", label: "Benin (+229)"},
+            {val: "+230", label: "Mauritius (+230)"},
+            {val: "+231", label: "Liberia (+231)"},
+            {val: "+232", label: "Sierra Leone (+232)"},
+            {val: "+233", label: "Ghana (+233)"},
+            {val: "+234", label: "Nigeria (+234)"},
+            {val: "+235", label: "Chad (+235)"},
+            {val: "+236", label: "Central African Republic (+236)"},
+            {val: "+237", label: "Cameroon (+237)"},
+            {val: "+238", label: "Cape Verde (+238)"},
+            {val: "+239", label: "São Tomé and Príncipe (+239)"},
+            {val: "+240", label: "Equatorial Guinea (+240)"},
+            {val: "+241", label: "Gabon (+241)"},
+            {val: "+242", label: "Republic of Congo (+242)"},
+            {val: "+243", label: "Democratic Republic of Congo (+243)"},
+            {val: "+244", label: "Angola (+244)"},
+            {val: "+245", label: "Guinea-Bissau (+245)"},
+            {val: "+246", label: "British Indian Ocean Territory (+246)"},
+            {val: "+248", label: "Seychelles (+248)"},
+            {val: "+249", label: "Sudan (+249)"},
+            {val: "+250", label: "Rwanda (+250)"},
+            {val: "+251", label: "Ethiopia (+251)"},
+            {val: "+252", label: "Somalia (+252)"},
+            {val: "+253", label: "Djibouti (+253)"},
+            {val: "+254", label: "Kenya (+254)"},
+            {val: "+255", label: "Tanzania (+255)"},
+            {val: "+256", label: "Uganda (+256)"},
+            {val: "+257", label: "Burundi (+257)"},
+            {val: "+258", label: "Mozambique (+258)"},
+            {val: "+260", label: "Zambia (+260)"},
+            {val: "+261", label: "Madagascar (+261)"},
+            {val: "+262", label: "Réunion, Mayotte (+262)"},
+            {val: "+263", label: "Zimbabwe (+263)"},
+            {val: "+264", label: "Namibia (+264)"},
+            {val: "+265", label: "Malawi (+265)"},
+            {val: "+266", label: "Lesotho (+266)"},
+            {val: "+267", label: "Botswana (+267)"},
+            {val: "+268", label: "Eswatini (Swaziland) (+268)"},
+            {val: "+269", label: "Comoros (+269)"},
+            {val: "+290", label: "Saint Helena (+290)"},
+            {val: "+291", label: "Eritrea (+291)"},
+            {val: "+297", label: "Aruba (+297)"},
+            {val: "+298", label: "Faroe Islands (+298)"},
+            {val: "+299", label: "Greenland (+299)"},
+            {val: "+350", label: "Gibraltar (+350)"},
+            {val: "+351", label: "Portugal (+351)"},
+            {val: "+352", label: "Luxembourg (+352)"},
+            {val: "+353", label: "Ireland (+353)"},
+            {val: "+354", label: "Iceland (+354)"},
+            {val: "+355", label: "Albania (+355)"},
+            {val: "+356", label: "Malta (+356)"},
+            {val: "+357", label: "Cyprus (+357)"},
+            {val: "+358", label: "Finland (+358)"},
+            {val: "+359", label: "Bulgaria (+359)"},
+            {val: "+370", label: "Lithuania (+370)"},
+            {val: "+371", label: "Latvia (+371)"},
+            {val: "+372", label: "Estonia (+372)"},
+            {val: "+373", label: "Moldova (+373)"},
+            {val: "+374", label: "Armenia (+374)"},
+            {val: "+375", label: "Belarus (+375)"},
+            {val: "+376", label: "Andorra (+376)"},
+            {val: "+377", label: "Monaco (+377)"},
+            {val: "+378", label: "San Marino (+378)"},
+            {val: "+379", label: "Vatican City (+379)"},
+            {val: "+380", label: "Ukraine (+380)"},
+            {val: "+381", label: "Serbia (+381)"},
+            {val: "+382", label: "Montenegro (+382)"},
+            {val: "+383", label: "Kosovo (+383)"},
+            {val: "+385", label: "Croatia (+385)"},
+            {val: "+386", label: "Slovenia (+386)"},
+            {val: "+387", label: "Bosnia and Herzegovina (+387)"},
+            {val: "+389", label: "North Macedonia (+389)"},
+            {val: "+420", label: "Czech Republic (+420)"},
+            {val: "+421", label: "Slovakia (+421)"},
+            {val: "+423", label: "Liechtenstein (+423)"},
+            {val: "+500", label: "Falkland Islands (+500)"},
+            {val: "+501", label: "Belize (+501)"},
+            {val: "+502", label: "Guatemala (+502)"},
+            {val: "+503", label: "El Salvador (+503)"},
+            {val: "+504", label: "Honduras (+504)"},
+            {val: "+505", label: "Nicaragua (+505)"},
+            {val: "+506", label: "Costa Rica (+506)"},
+            {val: "+507", label: "Panama (+507)"},
+            {val: "+508", label: "Saint Pierre and Miquelon (+508)"},
+            {val: "+509", label: "Haiti (+509)"},
+            {val: "+590", label: "Guadeloupe, Saint Martin (+590)"},
+            {val: "+591", label: "Bolivia (+591)"},
+            {val: "+592", label: "Guyana (+592)"},
+            {val: "+593", label: "Ecuador (+593)"},
+            {val: "+594", label: "French Guiana (+594)"},
+            {val: "+595", label: "Paraguay (+595)"},
+            {val: "+596", label: "Martinique (+596)"},
+            {val: "+597", label: "Suriname (+597)"},
+            {val: "+598", label: "Uruguay (+598)"},
+            {val: "+599", label: "Curaçao, Sint Maarten (+599)"},
+            {val: "+670", label: "Timor-Leste (+670)"},
+            {val: "+672", label: "Australian External Territories (+672)"},
+            {val: "+673", label: "Brunei (+673)"},
+            {val: "+674", label: "Nauru (+674)"},
+            {val: "+675", label: "Papua New Guinea (+675)"},
+            {val: "+676", label: "Tonga (+676)"},
+            {val: "+677", label: "Solomon Islands (+677)"},
+            {val: "+678", label: "Vanuatu (+678)"},
+            {val: "+679", label: "Fiji (+679)"},
+            {val: "+680", label: "Palau (+680)"},
+            {val: "+681", label: "Wallis and Futuna (+681)"},
+            {val: "+682", label: "Cook Islands (+682)"},
+            {val: "+683", label: "Niue (+683)"},
+            {val: "+685", label: "Samoa (+685)"},
+            {val: "+686", label: "Kiribati (+686)"},
+            {val: "+687", label: "New Caledonia (+687)"},
+            {val: "+688", label: "Tuvalu (+688)"},
+            {val: "+689", label: "French Polynesia (+689)"},
+            {val: "+690", label: "Tokelau (+690)"},
+            {val: "+691", label: "Micronesia (+691)"},
+            {val: "+692", label: "Marshall Islands (+692)"},
+            {val: "+800", label: "International Freephone (+800)"},
+            {val: "+808", label: "Shared Cost Service (+808)"},
+            {val: "+850", label: "North Korea (+850)"},
+            {val: "+852", label: "Hong Kong (+852)"},
+            {val: "+853", label: "Macau (+853)"},
+            {val: "+855", label: "Cambodia (+855)"},
+            {val: "+856", label: "Laos (+856)"},
+            {val: "+870", label: "Inmarsat SNAC (+870)"},
+            {val: "+878", label: "Universal Personal Telecommunication (+878)"},
+            {val: "+880", label: "Bangladesh (+880)"},
+            {val: "+881", label: "Global Mobile Satellite System (+881)"},
+            {val: "+882", label: "International Networks (+882)"},
+            {val: "+883", label: "International Networks (+883)"},
+            {val: "+886", label: "Taiwan (+886)"},
+            {val: "+960", label: "Maldives (+960)"},
+            {val: "+961", label: "Lebanon (+961)"},
+            {val: "+962", label: "Jordan (+962)"},
+            {val: "+963", label: "Syria (+963)"},
+            {val: "+964", label: "Iraq (+964)"},
+            {val: "+965", label: "Kuwait (+965)"},
+            {val: "+966", label: "Saudi Arabia (+966)"},
+            {val: "+967", label: "Yemen (+967)"},
+            {val: "+968", label: "Oman (+968)"},
+            {val: "+970", label: "Palestine (+970)"},
+            {val: "+971", label: "United Arab Emirates (+971)"},
+            {val: "+972", label: "Israel (+972)"},
+            {val: "+973", label: "Bahrain (+973)"},
+            {val: "+974", label: "Qatar (+974)"},
+            {val: "+975", label: "Bhutan (+975)"},
+            {val: "+976", label: "Mongolia (+976)"},
+            {val: "+977", label: "Nepal (+977)"},
+            {val: "+992", label: "Tajikistan (+992)"},
+            {val: "+993", label: "Turkmenistan (+993)"},
+            {val: "+994", label: "Azerbaijan (+994)"},
+            {val: "+995", label: "Georgia (+995)"},
+            {val: "+996", label: "Kyrgyzstan (+996)"},
+            {val: "+998", label: "Uzbekistan (+998)"}
+        ];
+
+        function initCountrySelect(selector) {
+            new TomSelect(selector, {
+                options: countryData,
+                valueField: 'val',
+                labelField: 'label',
+                searchField: 'label',
+                maxOptions: null,
+                items: ['+233'], // Default to Ghana
+                render: {
+                    option: function(data, escape) {
+                        return '<div>' + escape(data.label) + '</div>';
+                    },
+                    item: function(data, escape) {
+                        return '<div>' + escape(data.val) + '</div>';
+                    }
+                }
+            });
+        }
+
+        initCountrySelect('#pCountryCode');
+        initCountrySelect('#pEmergCountryCode');
+        initCountrySelect('#editCountryCode');
+
+        // Auto-detect User Location
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.country_calling_code) {
+                    const code = data.country_calling_code;
+                    document.querySelectorAll('.country-select').forEach(el => {
+                        if (el.tomselect && el.tomselect.options[code]) {
+                            el.tomselect.setValue(code);
+                        }
+                    });
+                }
+            })
+            .catch(error => console.log('Location detection failed:', error));
+    </script>
+</body>
+</html>
