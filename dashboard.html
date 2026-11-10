@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Dashboard - BedMatrix</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            height: 100vh;
+            background-color: #f1f5f9; /* Light grey background for content area */
+        }
+
+        html { scroll-behavior: smooth; }
+
+        /* Sidebar Navigation Styles */
+        .sidebar {
+            width: 80px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            /* transition: width 0.3s ease; Removed */
+            overflow: visible;
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #38bdf8;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            overflow: visible;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .nav-links li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+        }
+
+        /* Text Visibility Control */
+        .user-profile div:last-child {
+            display: none !important;
+        }
+
+        .logo-text {
+            display: block;
+            font-weight: 800;
+            font-size: 20px;
+            background: linear-gradient(45deg, #38bdf8, #818cf8, #c084fc);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: logoShimmer 3s ease infinite;
+        }
+
+        @keyframes logoShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .link-text {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1e293b;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-left: 15px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        
+        .link-text::before {
+            content: '';
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-right-color: #1e293b;
+        }
+
+        .nav-links a:hover .link-text {
+            display: block;
+            opacity: 1;
+        }
+
+        .user-profile {
+            margin-top: auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-profile:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* Main Content Area Styles */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 28px;
+        }
+
+        /* Dashboard Widgets Placeholder */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0; /* Start hidden for animation */
+            animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Staggered Animation Delays */
+        .dashboard-grid .card:nth-child(1) { animation-delay: 0.1s; }
+        .dashboard-grid .card:nth-child(2) { animation-delay: 0.2s; }
+        .dashboard-grid .card:nth-child(3) { animation-delay: 0.3s; }
+        .dashboard-grid .card:nth-child(4) { animation-delay: 0.4s; }
+        .dashboard-grid .card:nth-child(5) { animation-delay: 0.5s; }
+        
+        .dashboard-row .card:nth-child(1) { animation-delay: 0.5s; }
+        .dashboard-row .card:nth-child(2) { animation-delay: 0.6s; }
+        
+        .charts-row .card:nth-child(1) { animation-delay: 0.7s; }
+        .charts-row .card:nth-child(2) { animation-delay: 0.8s; }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* New Dashboard Sections */
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 15px;
+        }
+
+        .ward-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ward-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .ward-info { flex: 1; }
+        .ward-name { font-weight: 600; color: #0f172a; font-size: 14px; }
+        .ward-stats { font-size: 12px; color: #64748b; }
+
+        .progress-container {
+            width: 150px;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #3b82f6;
+            border-radius: 4px;
+            width: 0; /* Start at 0 for animation */
+            animation: fillBar 1.5s ease-out 0.8s forwards; /* Delay matches card entrance */
+        }
+
+        @keyframes fillBar {
+            to { width: var(--target-width); }
+        }
+
+        .recent-activity {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-details { flex: 1; }
+        .activity-text { color: #334155; margin-bottom: 2px; }
+        .activity-time { color: #94a3b8; font-size: 11px; }
+
+        /* Custom Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3b82f6;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 300px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .notification.show { transform: translateX(0); }
+        .notification.success { border-left-color: #22c55e; }
+        .notification.error { border-left-color: #ef4444; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .btn-submit:hover {
+            background-color: #1e293b;
+        }
+
+        /* Summary Card Specifics */
+        .summary-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .summary-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: #0f172a; color: #e2e8f0; }
+        .dark-mode .card, .dark-mode .modal-card { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
+        .dark-mode .header h1, .dark-mode .section-title, .dark-mode .modal-header h2, .dark-mode h3 { color: #f8fafc !important; }
+        .dark-mode .form-control, .dark-mode select { background-color: #334155; border-color: #475569; color: white; }
+        .dark-mode .form-group label { color: #94a3b8; }
+        .dark-mode #realTimeClock { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
+        .dark-mode .ward-item, .dark-mode .activity-item { border-bottom-color: #334155; }
+        .dark-mode .ward-name, .dark-mode .activity-text { color: #f8fafc; }
+
+        /* Global Polish */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::selection { background: #38bdf8; color: white; }
+        
+        body.dark-mode ::-webkit-scrollbar-thumb { background: #475569; }
+        body.dark-mode ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .main-content { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+            .sidebar, #admitBtn, #notification-container { display: none !important; }
+            .main-content { padding: 0; margin: 0; overflow: visible; }
+            body { background-color: white; height: auto; display: block; }
+            .card { box-shadow: none; border: 1px solid #e2e8f0; break-inside: avoid; margin-bottom: 20px; opacity: 1 !important; animation: none !important; }
+            .dashboard-grid, .dashboard-row { display: block; }
+            .header h1 { color: black !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="notification-container" class="notification-container"></div>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="logo-text">BedMatrix</span>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li>
+                <a href="#" class="active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span class="link-text">Dashboard Overview</span>
+                </a>
+            </li>
+            <li>
+                <a href="bed_management.html">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22h20"></path><path d="M2 10h20"></path><path d="M5 10v12"></path><path d="M19 10v12"></path><path d="M4 6h16"></path></svg>
+                    <span class="link-text">Bed Management</span>
+                </a>
+            </li>
+            <li>
+                <a href="patient_management.html">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    <span class="link-text">Patient Admissions</span>
+                </a>
+            </li>
+            <li>
+                <a href="discharge_unit.html">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                    <span class="link-text">Discharge Unit</span>
+                </a>
+            </li>
+            <li>
+                <a href="notifications.html">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span class="link-text">Notifications</span>
+                </a>
+            </li>
+            <li>
+                <a href="reports_analytics.html">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span class="link-text">Reports & Analytics</span>
+                </a>
+            </li>
+            <li style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <a href="#" id="logoutBtn" style="color: #ef4444;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span class="link-text">Logout</span>
+                </a>
+            </li>
+        </ul>
+        <div class="user-profile" onclick="window.location.href='profile.html'">
+            <div class="avatar" id="userAvatar">JS</div>
+            <div>
+                <div style="font-size: 14px; font-weight: 600;" id="userName">John Smith</div>
+                <div style="font-size: 12px; color: #94a3b8;" id="userRole">Head Nurse</div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div id="realTimeClock" style="background: white; padding: 10px 16px; border-radius: 8px; font-weight: 600; color: #334155; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; font-size: 14px;"></div>
+                <button id="admitBtn" style="padding: 12px 24px; background: #0f172a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.2s;">+ Admit Patient</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="summary-content">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #64748b; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">TOTAL BEDS</h3>
+                        <div style="font-size: 36px; font-weight: 800; color: #0f172a;" id="totalBedsCount">150</div>
+                        <div style="font-size: 13px; color: #22c55e; margin-top: 5px;">↑ 2 new added</div>
+                    </div>
+                    <div class="summary-icon" style="background-color: #f1f5f9; color: #475569;">🛏️</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="summary-content">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #64748b; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">AVAILABLE</h3>
+                        <div style="font-size: 36px; font-weight: 800; color: #22c55e;" id="availableBedsCount">18</div>
+                        <div style="font-size: 13px; color: #64748b; margin-top: 5px;">17.4% capacity</div>
+                    </div>
+                    <div class="summary-icon" style="background-color: #dcfce7; color: #166534;">✅</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="summary-content">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #64748b; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">OCCUPIED</h3>
+                        <div style="font-size: 36px; font-weight: 800; color: #ef4444;" id="occupiedBedsCount">76</div>
+                        <div style="font-size: 13px; color: #ef4444; margin-top: 5px;">High demand</div>
+                    </div>
+                    <div class="summary-icon" style="background-color: #fee2e2; color: #991b1b;">👤</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="summary-content">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #64748b; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">UNTIDY</h3>
+                        <div style="font-size: 36px; font-weight: 800; color: #3b82f6;" id="untidyBedsCount">9</div>
+                        <div style="font-size: 13px; color: #3b82f6; margin-top: 5px;">Needs attention</div>
+                    </div>
+                    <div class="summary-icon" style="background-color: #dbeafe; color: #1e40af;">🧹</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="summary-content">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #64748b; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">ADMITTED TODAY</h3>
+                        <div style="font-size: 36px; font-weight: 800; color: #8b5cf6;" id="admittedTodayCount">0</div>
+                        <div style="font-size: 13px; color: #8b5cf6; margin-top: 5px;">New arrivals</div>
+                    </div>
+                    <div class="summary-icon" style="background-color: #f3e8ff; color: #7c3aed;">📅</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-row" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+            <div class="card">
+                <div class="section-title">Patient Gender Distribution</div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="section-title">Bed Occupancy Trends (7 Days)</div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="occupancyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-row">
+            <div class="card">
+                <div class="section-title">Ward Capacity</div>
+                <div class="ward-list" id="wardListContainer">
+                    <div style="padding: 20px; text-align: center; color: #94a3b8;">Loading ward data...</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="section-title">Recent Activity</div>
+                <ul class="recent-activity" id="recentActivityList">
+                    <li class="activity-item" style="justify-content: center; color: #94a3b8;">No recent activity</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- Patient Registration Modal -->
+    <div class="modal-overlay" id="admissionModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Admit New Patient</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <form id="admissionForm">
+                <div class="form-group">
+                    <label>Patient Full Name</label>
+                    <input type="text" id="pName" class="form-control" required placeholder="e.g. Jane Doe">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="pAge" class="form-control" required placeholder="Age">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="pGender" class="form-control">
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Condition / Diagnosis</label>
+                    <input type="text" id="pCondition" class="form-control" required placeholder="e.g. Cardiac Arrest">
+                </div>
+                <div class="form-group">
+                    <label>Assign Ward</label>
+                    <select id="pWard" class="form-control">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Register Patient</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check Dark Mode
+        if (localStorage.getItem('nbs_dark_mode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+
+        const modal = document.getElementById('admissionModal');
+        const btnAdmit = document.getElementById('admitBtn');
+
+        // Add hover animation to admit button via JS for extra interactivity
+        btnAdmit.addEventListener('mouseenter', () => {
+            btnAdmit.style.transform = 'translateY(-2px)';
+        });
+        btnAdmit.addEventListener('mouseleave', () => {
+            btnAdmit.style.transform = 'translateY(0)';
+        });
+
+        btnAdmit.addEventListener('click', () => {
+            // Populate Wards dynamically
+            const allBeds = JSON.parse(localStorage.getItem('nbs_beds') || '[]');
+            const wards = [...new Set(allBeds.map(b => b.ward))].sort();
+            const wardSelect = document.getElementById('pWard');
+            
+            wardSelect.innerHTML = wards.length > 0 
+                ? wards.map(w => `<option value="${w}">${w}</option>`).join('') 
+                : '<option value="">No wards available</option>';
+            
+            modal.classList.add('open');
+        });
+
+        function closeModal() {
+            modal.classList.remove('open');
+        }
+
+        // Close on click outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        function playSuccessSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                // Simple success chime (C5 to C6 sweep)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.1); // C6
+                
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (e) { console.error('Audio play failed', e); }
+        }
+
+        function showNotification(message, type) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            // Save to LocalStorage
+            const notifData = { message, type, timestamp: new Date().toLocaleString() };
+            const storedNotifs = JSON.parse(localStorage.getItem('nbs_notifications') || '[]');
+            storedNotifs.unshift(notifData);
+            localStorage.setItem('nbs_notifications', JSON.stringify(storedNotifs));
+
+            setTimeout(() => notification.classList.add('show'), 10);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        document.getElementById('admissionForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('pName').value;
+            const age = document.getElementById('pAge').value;
+            const gender = document.getElementById('pGender').value;
+            const condition = document.getElementById('pCondition').value;
+            const ward = document.getElementById('pWard').value;
+
+            const allBeds = JSON.parse(localStorage.getItem('nbs_beds') || '[]');
+            
+            // Find first available bed in selected ward
+            const bedIndex = allBeds.findIndex(b => b.ward === ward && b.status === 'available');
+
+            if (bedIndex > -1) {
+                // Update bed data
+                allBeds[bedIndex].status = 'occupied';
+                allBeds[bedIndex].patient = name;
+                allBeds[bedIndex].age = age;
+                allBeds[bedIndex].gender = gender;
+                allBeds[bedIndex].conditionStatus = 'Stable'; // Default
+                allBeds[bedIndex].diagnosis = condition;
+                allBeds[bedIndex].admissionDate = new Date().toISOString().split('T')[0];
+                allBeds[bedIndex].doctor = 'Dr. Assigned';
+                allBeds[bedIndex].patientId = `P-${Date.now().toString().slice(-6)}`;
+
+                localStorage.setItem('nbs_beds', JSON.stringify(allBeds));
+                
+                playSuccessSound();
+                showNotification(`Patient admitted successfully to ${allBeds[bedIndex].id}`, 'success');
+                closeModal();
+                e.target.reset();
+                
+                // Refresh Dashboard Stats
+                loadDashboardStats();
+            } else {
+                showNotification(`No available beds found in ${ward}`, 'error');
+            }
+        });
+
+        // Session Management
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = JSON.parse(localStorage.getItem('nbs_current_user'));
+            
+            if (!currentUser) {
+                // Redirect to login if no session
+                window.location.href = 'login.php';
+                return;
+            }
+
+            // Update Profile
+            document.getElementById('userName').textContent = currentUser.fullName;
+            
+            // Map Role Codes to Full Names
+            const roleMap = {
+                'DOC': 'Doctor', 'ADM': 'Administrator', 'NUR': 'Nurse', 
+                'WMG': 'Ward Manager', 'REC': 'Records Officer'
+            };
+            document.getElementById('userRole').textContent = roleMap[currentUser.role] || currentUser.role;
+
+            // Initials
+            const initials = currentUser.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('userAvatar').textContent = initials;
+
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                showNotification('Logging you out...', 'success');
+
+                // Clear client-side storage
+                localStorage.removeItem('nbs_current_user');
+                localStorage.removeItem('nbs_notifications'); // Also clear notifications
+
+                // Call server to destroy the PHP session, ensuring a complete logout
+                fetch('api.php?action=logout')
+                    .finally(() => {
+                        // Redirect to login page after a short delay for the notification to be seen
+                        setTimeout(() => {
+                            window.location.href = 'login.php';
+                        }, 500);
+                    });
+            });
+
+            initDataIfMissing();
+            loadDashboardStats();
+        });
+
+        // Listen for storage changes to update dashboard in real-time
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'nbs_beds') {
+                loadDashboardStats();
+            }
+        });
+
+        // Real-time Clock
+        function updateClock() {
+            const now = new Date();
+            const datePart = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            const timePart = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const clockEl = document.getElementById('realTimeClock');
+            if (clockEl) {
+                clockEl.innerHTML = `<span style="color: #94a3b8; margin-right: 8px;">${datePart}</span>${timePart}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function initDataIfMissing() {
+            if (localStorage.getItem('nbs_beds')) return;
+
+            const wards = [
+                { name: "General Ward A", beds: 50, prefix: "GW-A" },
+                { name: "General Ward B", beds: 50, prefix: "GW-B" },
+                { name: "Intensive Care Unit (ICU)", beds: 30, prefix: "ICU" },
+                { name: "Emergency Room", beds: 40, prefix: "ER" },
+                { name: "Maternity Ward", beds: 30, prefix: "MAT" },
+                { name: "Surgical Ward", beds: 40, prefix: "SUR" },
+                { name: "Private Ward", beds: 15, prefix: "PVT" }
+            ];
+
+            let allBeds = [];
+            wards.forEach(ward => {
+                for(let i = 1; i <= ward.beds; i++) {
+                    const rand = Math.random();
+                    let status = 'available';
+                    let patient = 'Empty';
+                    let admissionDate = '-';
+                    let gender = '-';
+                    
+                    if (rand > 0.30) {
+                        status = 'occupied';
+                        patient = 'Patient #' + Math.floor(Math.random() * 1000);
+                        admissionDate = new Date().toISOString().split('T')[0];
+                        gender = Math.random() > 0.5 ? 'Male' : 'Female';
+                    } else if (rand > 0.20) {
+                        status = 'untidy';
+                        patient = 'Needs Cleaning';
+                    } else if (rand > 0.15) {
+                        status = 'reserved';
+                    } else if (rand > 0.10) {
+                        status = 'discharging';
+                        patient = 'Patient #' + Math.floor(Math.random() * 1000);
+                        gender = Math.random() > 0.5 ? 'Male' : 'Female';
+                    }
+
+                    allBeds.push({
+                        id: `${ward.prefix}-${String(i).padStart(2, '0')}`,
+                        ward: ward.name,
+                        status: status,
+                        patient: patient,
+                        type: (i % 2 === 0) ? 'Standard' : 'Adjustable',
+                        room: `Room ${Math.ceil(i/4)}`,
+                        admissionDate: admissionDate,
+                        gender: gender,
+                        age: status === 'occupied' ? Math.floor(Math.random() * 60) + 18 : '-'
+                    });
+                }
+            });
+            localStorage.setItem('nbs_beds', JSON.stringify(allBeds));
+        }
+
+        let genderChart = null;
+        let occupancyChart = null;
+
+        function loadDashboardStats() {
+            // Load Bed Data for Stats
+            const storedBeds = localStorage.getItem('nbs_beds');
+            let maleCount = 42; // Default fallback
+            let femaleCount = 34; // Default fallback
+
+            if (storedBeds) {
+                const beds = JSON.parse(storedBeds);
+                
+                // Update Summary Cards
+                document.getElementById('totalBedsCount').textContent = beds.length;
+                document.getElementById('availableBedsCount').textContent = beds.filter(b => b.status === 'available').length;
+                document.getElementById('occupiedBedsCount').textContent = beds.filter(b => ['occupied', 'isolation', 'discharging'].includes(b.status)).length;
+                document.getElementById('untidyBedsCount').textContent = beds.filter(b => b.status === 'untidy').length;
+
+                // Calculate Admitted Today
+                const today = new Date().toISOString().split('T')[0];
+                const admittedToday = beds.filter(b => b.admissionDate === today).length;
+                document.getElementById('admittedTodayCount').textContent = admittedToday;
+
+                // Calculate Gender Stats
+                const occupied = beds.filter(b => ['occupied', 'isolation', 'discharging'].includes(b.status));
+                maleCount = occupied.filter(b => b.gender === 'Male').length;
+                femaleCount = occupied.filter(b => b.gender === 'Female').length;
+
+                // --- Dynamic Ward Capacity ---
+                const wardListContainer = document.getElementById('wardListContainer');
+                if (wardListContainer) {
+                    wardListContainer.innerHTML = ''; // Clear static content
+
+                    // Group by ward
+                    const wardMap = {};
+                    beds.forEach(bed => {
+                        if (!wardMap[bed.ward]) {
+                            wardMap[bed.ward] = { total: 0, occupied: 0 };
+                        }
+                        wardMap[bed.ward].total++;
+                        if (['occupied', 'isolation', 'discharging'].includes(bed.status)) {
+                            wardMap[bed.ward].occupied++;
+                        }
+                    });
+
+                    // Generate HTML
+                    for (const [wardName, stats] of Object.entries(wardMap)) {
+                        const percentage = stats.total > 0 ? Math.round((stats.occupied / stats.total) * 100) : 0;
+                        let color = '#22c55e'; // Green
+                        if (percentage > 50) color = '#f59e0b'; // Orange
+                        if (percentage > 80) color = '#ef4444'; // Red
+
+                        const item = document.createElement('div');
+                        item.className = 'ward-item';
+                        item.innerHTML = `
+                            <div class="ward-info">
+                                <div class="ward-name">${wardName}</div>
+                                <div class="ward-stats">${stats.occupied} / ${stats.total} Occupied</div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="--target-width: ${percentage}%; background-color: ${color};"></div>
+                            </div>
+                        `;
+                        wardListContainer.appendChild(item);
+                    }
+                }
+            }
+
+            // --- Dynamic Recent Activity ---
+            const storedNotifs = localStorage.getItem('nbs_notifications');
+            const activityList = document.getElementById('recentActivityList');
+            if (storedNotifs && activityList) {
+                const notifs = JSON.parse(storedNotifs).slice(0, 5); // Top 5
+                if (notifs.length > 0) {
+                    activityList.innerHTML = '';
+                    notifs.forEach(notif => {
+                        let icon = 'i';
+                        let color = '#3b82f6';
+                        let bg = '#dbeafe';
+
+                        if (notif.type === 'success') { icon = '✓'; color = '#22c55e'; bg = '#dcfce7'; }
+                        if (notif.type === 'alert' || notif.type === 'error') { icon = '!'; color = '#ef4444'; bg = '#fee2e2'; }
+                        if (notif.type === 'warning') { icon = '⚠️'; color = '#eab308'; bg = '#fef9c3'; }
+
+                        const li = document.createElement('li');
+                        li.className = 'activity-item';
+                        li.innerHTML = `
+                            <div class="activity-icon" style="color: ${color}; background-color: ${bg};">${icon}</div>
+                            <div class="activity-details">
+                                <div class="activity-text">${notif.message}</div>
+                                <div class="activity-time">${notif.timestamp}</div>
+                            </div>
+                        `;
+                        activityList.appendChild(li);
+                    });
+                }
+            }
+
+            // Initialize Charts
+            const ctxGender = document.getElementById('genderChart').getContext('2d');
+            if (genderChart) genderChart.destroy();
+            genderChart = new Chart(ctxGender, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Male', 'Female'],
+                    datasets: [{
+                        data: [maleCount, femaleCount],
+                        backgroundColor: ['#3b82f6', '#ec4899'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            const ctxOccupancy = document.getElementById('occupancyChart').getContext('2d');
+            if (occupancyChart) occupancyChart.destroy();
+            occupancyChart = new Chart(ctxOccupancy, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Occupancy',
+                        data: [65, 68, 72, 70, 75, 76, 74],
+                        borderColor: '#0f172a',
+                        backgroundColor: 'rgba(15, 23, 42, 0.05)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#0f172a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: false, min: 50, grid: { borderDash: [2, 4] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

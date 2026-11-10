@@ -745,28 +745,28 @@
     </div>
 
     <script>
+        <?php require_once 'session_check.php'; ?>
+
         // Check Dark Mode
         if (localStorage.getItem('nbs_dark_mode') === 'true') {
             document.body.classList.add('dark-mode');
         }
 
         // Session Management
-        const currentUser = JSON.parse(localStorage.getItem('nbs_current_user'));
-        if (!currentUser) {
-            // Fallback for demo/testing
-            document.getElementById('userName').textContent = 'Administrator';
-            document.getElementById('userRole').textContent = 'Admin';
-            document.getElementById('userAvatar').textContent = 'A';
-        } else {
-            document.getElementById('userName').textContent = currentUser.fullName;
-            const roleMap = { 'DOC': 'Doctor', 'ADM': 'Administrator', 'NUR': 'Nurse', 'WMG': 'Ward Manager', 'REC': 'Records Officer' };
-            document.getElementById('userRole').textContent = roleMap[currentUser.role] || currentUser.role;
-            document.getElementById('userAvatar').textContent = currentUser.fullName.charAt(0);
-        }
+        const currentUser = <?php echo json_encode($_SESSION['nbs_current_user']); ?>;
+        document.getElementById('userName').textContent = currentUser.fullName;
+        const roleMap = { 'DOC': 'Doctor', 'ADM': 'Administrator', 'NUR': 'Nurse', 'WMG': 'Ward Manager', 'REC': 'Records Officer' };
+        document.getElementById('userRole').textContent = roleMap[currentUser.role] || currentUser.role;
+        document.getElementById('userAvatar').textContent = currentUser.fullName.charAt(0);
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('nbs_current_user');
-            window.location.href = 'hospital_background.html';
+            fetch('api.php?action=logout')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'login.php';
+                    }
+                });
         });
 
         // Data Loading
