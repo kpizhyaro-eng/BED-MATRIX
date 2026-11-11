@@ -785,6 +785,33 @@
                 { name: "Surgical Ward", beds: 40, prefix: "SUR" },
                 { name: "Private Ward", beds: 15, prefix: "PVT" }
             ];
+            function openAdmissionModal() {
+    // Populate Wards
+    const wardSelect = document.getElementById('pWard');
+    wardSelect.innerHTML = wards.map(w => `<option value="${w}">${w}</option>`).join('');
+    modal.classList.add('open');
+}
+            function openAdmissionModal() {
+    const wardSelect = document.getElementById('pWard');
+
+    const wards = [
+        "General Ward A",
+        "General Ward B",
+        "Intensive Care Unit (ICU)",
+        "Emergency Room",
+        "Maternity Ward",
+        "Surgical Ward",
+        "Private Ward"
+    ];
+
+    wardSelect.innerHTML = wards
+        .map(ward => `<option value="${ward}">${ward}</option>`)
+        .join('');
+
+    modal.classList.add('open');
+}
+
+toolbarBtn.addEventListener('click', openAdmissionModal);
 
             const maleNames = [
                 "James Mensah", "John Boateng", "Michael Owusu", "Daniel Asante", "David Appiah",
